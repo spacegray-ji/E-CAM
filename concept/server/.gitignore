@@ -156,3 +156,5 @@ dist
 photos/*
 
 tmp
+
+key.txt

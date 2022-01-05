@@ -23,48 +23,73 @@ app.use(fileUpload({
   tempFileDir: "./tmp/",
 }))
 
+let debugKey = short.uuid().toString()
 
-const tokens = new Map<string, UserInfo>()
+
+const userTokens = new Map<string, UserInfo>()
+const cameraTokens = new Map<string, string>()
+const tokenRemoveCallbacks = new Map<string, NodeJS.Timer>()
 /**
  * 토큰 관련 express 명령어들을 등록합니다.
  * @param exp Express 객체
  * @param db 데이터베이스
  */
-async function registerToken(exp:Express, db: Db) {
+async function registerToken(exp: Express, db: Db) {
   /**
    * Create token by serial
    */
-  exp.post("/token/create", async (req, res) => {
+  exp.put("/token", async (req, res) => {
     // paramter check
     const serial = req.body.serial as string | null
-    const username = req.body.username as string | null
-    if (serial == null || username == null) {
+    const username: string = req.body.username ?? "default"
+    const isCamera: boolean = safeBoolean(req.body.isCamera)
+    if (serial == null) {
       responseError(res, Status.INVALID_PARAMETER, "No serial or username was provided.")
       return
     }
     const token = short.generate()
-    tokens.set(token, {
-      serial,
-      username,
-    })
-    setTimeout(() => {
-      tokens.delete(token)
-    }, oneDay)
-
+    if (!isCamera) {
+      for (const [key, value] of userTokens) {
+        if (value.serial == serial) {
+          userTokens.delete(key)
+          break
+        }
+      }
+      userTokens.set(token, {
+        serial,
+        username,
+      })
+      setTimeout(() => {
+        userTokens.delete(token)
+      }, oneDay)
+    } else {
+      for (const [key, cameraSerial] of cameraTokens) {
+        if (cameraSerial == serial) {
+          cameraTokens.delete(key)
+          break
+        }
+      }
+      cameraTokens.set(token, serial)
+    }
     responseJSON(res, Status.OK, "Token created.", { token })
   })
 }
 
-async function registerPhoto(exp:Express, db: Db) {
+async function registerPhoto(exp: Express, db: Db) {
   const photoDB = db.collection("photos")
 
-  app.use("/photo/", express.static("./photos"))
-  exp.post("/users/:token/photo/upload", async (req, res) => {
+  app.use("/photo/static/", express.static("./photos"))
+  exp.put("/photo/:token", async (req, res) => {
     // parameter check
     const token = req.params.token as string
-    const user = await verifyToken(token)
+    const cameraSerial = verifyCameraToken(token)
+    if (cameraSerial == null) {
+      responseError(res, Status.NOT_FOUND, "Invalid token.")
+      return
+    }
+    const user = queryUserBySerial(cameraSerial)
     if (user == null) {
-      responseError(res, Status.INVALID_PARAMETER, "Invalid token.")
+      responseError(res, Status.NOT_FOUND, "No user assigned.")
       return
     }
     const photos = asArraySafe(req.files?.photo)
@@ -78,7 +103,7 @@ async function registerPhoto(exp:Express, db: Db) {
       return
     }
     // loop
-    const filenames:string[] = []
+    const filenames: string[] = []
     for (const photo of photos) {
       // check jpeg
       if (photo.mimetype != "image/jpeg") {
@@ -92,25 +117,61 @@ async function registerPhoto(exp:Express, db: Db) {
       }
       const filename = `${short.generate()}.jpg`
       await photo.mv(`./photos/${filename}`)
-      const pInfo:PhotoInfo = {
+      const pInfo: PhotoInfo = {
         user,
         filename,
-        testnumber: Math.floor(Math.random() * 1000),
+        createdAt: new Date(Date.now()),
       }
       await photoDB.insertOne(pInfo)
       filenames.push(filename)
     }
-    const photoRes:PhotoRes = {
+    const photoRes: PhotoRes = {
       uploader: user,
       filenames,
     }
     responseJSON(res, Status.OK, "Photo uploaded.", photoRes)
   })
+  exp.get("/photo/:token", async (req, res) => {
+    const token = req.params.token
+    const maxCount:number = safeNumber(req.query.count as unknown, 10)
+    const user = verifyUserToken(token)
+    if (user == null) {
+      responseError(res, Status.NOT_FOUND, "No user assigned.")
+      return
+    }
+    const photos = await photoDB.find({ user }).limit(maxCount).toArray()
+    responseJSON(res, Status.OK, "Photo list.", {
+      photos,
+    })
+  })
+}
+
+async function registerDebug(exp: Express, db: Db) {
+  const photoDB = db.collection("photos")
+  exp.delete("/debug/photo", async (req, res) => {
+    const authKey = req.body.authKey as string | null
+    if (authKey != null && debugKey == authKey) {
+      const photos = await photoDB.find().toArray()
+      for (const photo of photos) {
+        await fs.unlink(`./photos/${photo.filename}`)
+        await photoDB.deleteOne({ _id: photo._id })
+      }
+      responseJSON(res, Status.OK, "Photo deleted.", {})
+    } else {
+      responseJSON(res, Status.INVALID_REQUEST, "Access denied.", {})
+    }
+  })
 }
 
 
 async function init() {
+  // cleanup
+  await clearTemp()
+  // debug key
+  debugKey = await fs.readFile("./key.txt", "utf8").catch((rej) => short.uuid().toString())
+  // register route
   const db = await connectDB("localhost", "local", "concept1")
+  registerDebug(app, db)
   registerToken(app, db)
   registerPhoto(app, db)
   const server = http.createServer(app)
@@ -129,10 +190,75 @@ init()
  * @param token 토큰
  * @returns 토큰이 있으면 `UserInfo`, 없으면 `null`
  */
-async function verifyToken(token:string):Promise<UserInfo | undefined | null> {
-  if (tokens.has(token)) {
-    return tokens.get(token)
+function verifyUserToken(token: string): UserInfo | undefined | null {
+  if (userTokens.has(token)) {
+    return userTokens.get(token)
   } else {
     return null
+  }
+}
+
+function queryUserBySerial(serial: string){
+  for (const [, user] of userTokens) {
+    if (user.serial == serial) {
+      return user
+    }
+  }
+  return null
+}
+
+function safeNumber(input:unknown | null | undefined, dfvalue:number) { 
+  if (input == null) {
+    return dfvalue
+  }
+  if (typeof input == "number") {
+    return input
+  }
+  if (typeof input == "string") {
+    const value = Number.parseInt(input)
+    if (Number.isNaN(value) || !Number.isFinite(value)) {
+      return dfvalue
+    }
+    return value
+  }
+  return dfvalue
+}
+
+function safeBoolean(input:unknown | null | undefined, dfvalue:boolean = false) 
+{
+  if (input == null) {
+    return dfvalue
+  }
+  if (typeof input == "boolean") {
+    return input
+  }
+  if (typeof input == "string") {
+    const value = input.toLowerCase()
+    if (value == "true") {
+      return true
+    } else if (value == "false") {
+      return false
+    }
+  }
+  return dfvalue
+}
+
+/**
+ * 카메라 토큰이 메모리에 있는지 검사합니다.
+ * @param token 토큰
+ * @returns 토큰이 있으면 시리얼(`string`), 없으면 `null`
+ */
+function verifyCameraToken(token: string): string | undefined | null {
+  if (cameraTokens.has(token)) {
+    return cameraTokens.get(token)
+  } else {
+    return null
+  }
+}
+
+async function clearTemp() {
+  try {
+    await fs.rm("./tmp", { recursive: true })
+  } catch (err) {
   }
 }
