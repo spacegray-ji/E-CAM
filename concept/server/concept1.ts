@@ -6,12 +6,17 @@ import express, { Express } from "express"
 import fileUpload from "express-fileupload"
 import http from "http"
 import { MongoClient, Db } from "mongodb"
-import fs from "fs/promises"
+import fsp from "fs/promises"
+import fs from "fs"
 import { simpleResponse, responseError, responseJSON, oneDay, connectDB, asArray, asArraySafe, oneMiB } from "./util"
 import { GeneralResponse, Status } from "./general-resp"
 import short from "short-uuid"
 import { UserInfo } from "./structure/user-info"
-import { PhotoInfo, PhotoRes } from "./structure/photo-info"
+import { BasicPhotoInfo, PhotoInfo, DBPhotoInfo, PhotoModelRes, PhotoModelSingle, PhotoRes } from "./structure/photo-info"
+import got from "got-cjs"
+import { FormData, File } from "formdata-node"
+import { fileFromPath } from "formdata-node/file-from-path"
+import { modelServer } from "./config"
 
 /**
  * Express 생성
@@ -102,8 +107,8 @@ async function registerPhoto(exp: Express, db: Db) {
       responseError(res, Status.INVALID_PARAMETER, "Too many photos.")
       return
     }
-    // loop
-    const filenames: string[] = []
+    // check fields
+    const basicPhotos: BasicPhotoInfo[] = []
     for (const photo of photos) {
       // check jpeg
       if (photo.mimetype != "image/jpeg") {
@@ -115,21 +120,62 @@ async function registerPhoto(exp: Express, db: Db) {
         responseError(res, Status.INVALID_PARAMETER, "Photo is too large.")
         return
       }
+      // generate filename
       const filename = `${short.generate()}.jpg`
       await photo.mv(`./photos/${filename}`)
-      const pInfo: PhotoInfo = {
+
+      // push info
+      const pInfo: BasicPhotoInfo = {
         user,
         filename,
         createdAt: new Date(Date.now()),
       }
-      await photoDB.insertOne(pInfo)
-      filenames.push(filename)
+      basicPhotos.push(pInfo)
+      // await photoDB.insertOne(pInfo)
     }
-    const photoRes: PhotoRes = {
-      uploader: user,
-      filenames,
+    // parse from model server
+    const photoForm = new FormData()
+    const labeledPhotos:Array<DBPhotoInfo> = []
+    for (const bphoto of basicPhotos) {
+      photoForm.append("images", await fileFromPath(`./photos/${bphoto.filename}`))
     }
-    responseJSON(res, Status.OK, "Photo uploaded.", photoRes)
+    try {
+      const modelRes = await got.post(`${modelServer}/process`, {
+        body:photoForm
+      }).json() as PhotoModelRes
+      if (modelRes.error) {
+        responseError(res, Status.INVALID_PARAMETER, "Wrong uploaded file.")
+        return
+      }
+      // map photo info
+      const valueMap = new Map<string, PhotoModelSingle>()
+      for (const respData of modelRes.data) {
+        valueMap.set(respData.filename, respData)       
+      }
+      // push to database
+      for (const bphoto of basicPhotos) {
+        const valueInfo = valueMap.get(bphoto.filename)
+        if (valueInfo == null) {
+          responseError(res, Status.INTERNAL_SERVER_ERROR, `Unexpected error. from getting model server. ${JSON.stringify(modelRes)}`)
+          return
+        }
+        const pInfo:DBPhotoInfo = {
+          ...bphoto,
+          ...valueInfo,
+        }
+        labeledPhotos.push(pInfo)
+      }
+      await photoDB.insertMany(labeledPhotos)
+
+      const photoRes: PhotoRes = {
+        uploader: user,
+        results: removeDBInfoFromPhoto(labeledPhotos),
+      }
+      responseJSON(res, Status.OK, "Photo uploaded.", photoRes)
+    } catch (err) {
+      console.error(err)
+      responseError(res, Status.INTERNAL_SERVER_ERROR, "Internal Server Error. (Model server)")
+    }
   })
   exp.get("/photo/:token", async (req, res) => {
     const token = req.params.token
@@ -141,7 +187,7 @@ async function registerPhoto(exp: Express, db: Db) {
     }
     const photos = await photoDB.find({ user }).limit(maxCount).toArray()
     responseJSON(res, Status.OK, "Photo list.", {
-      photos,
+      photos: removeDBInfoFromPhoto(photos as unknown as DBPhotoInfo[]),
     })
   })
 }
@@ -153,10 +199,39 @@ async function registerDebug(exp: Express, db: Db) {
     if (authKey != null && debugKey == authKey) {
       const photos = await photoDB.find().toArray()
       for (const photo of photos) {
-        await fs.unlink(`./photos/${photo.filename}`)
+        await fsp.unlink(`./photos/${photo.filename}`)
         await photoDB.deleteOne({ _id: photo._id })
       }
       responseJSON(res, Status.OK, "Photo deleted.", {})
+    } else {
+      responseJSON(res, Status.INVALID_REQUEST, "Access denied.", {})
+    }
+  })
+  exp.post("/debug/photo/model", async (req, res) => {
+    const authKey = req.body.authKey as string | null
+    if (authKey != null && debugKey == authKey) {
+      const photos = asArraySafe(req.files?.photo)
+      if (photos == null) {
+        responseError(res, Status.INVALID_PARAMETER, "No photo was provided.")
+        return
+      }
+      const photoList:string[] = []
+      for (const photo of photos) {
+        const filename = `${short.generate()}.jpg`
+        const tempPath = `./tmp/${filename}`
+        await photo.mv(tempPath)
+        photoList.push(tempPath)
+      }
+      // Upload REST
+      const photoForm = new FormData()
+      for (const path of photoList) {
+        photoForm.append("images", await fileFromPath(path))
+      }
+      const modelRes = await got.post(`${modelServer}/process`, {
+        body:photoForm
+      }).json()
+
+      responseJSON(res, Status.OK, "Response from model server", modelRes)
     } else {
       responseJSON(res, Status.INVALID_REQUEST, "Access denied.", {})
     }
@@ -168,7 +243,7 @@ async function init() {
   // cleanup
   await clearTemp()
   // debug key
-  debugKey = await fs.readFile("./key.txt", "utf8").catch((rej) => short.uuid().toString())
+  debugKey = await fsp.readFile("./key.txt", "utf8").catch((rej) => short.uuid().toString())
   // register route
   const db = await connectDB("localhost", "local", "concept1")
   registerDebug(app, db)
@@ -258,7 +333,17 @@ function verifyCameraToken(token: string): string | undefined | null {
 
 async function clearTemp() {
   try {
-    await fs.rm("./tmp", { recursive: true })
+    await fsp.rm("./tmp", { recursive: true })
   } catch (err) {
   }
+}
+
+function removeDBInfoFromPhoto(pinfo:Array<DBPhotoInfo>) {
+  return pinfo.map((p) => {
+    if ((p as any)["_id"] != null) {
+      delete (p as any)["_id"]
+    }
+    delete (p as any)["user"]
+    return p as PhotoInfo
+  })
 }
