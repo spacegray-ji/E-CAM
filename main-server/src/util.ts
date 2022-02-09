@@ -6,10 +6,10 @@ export function simpleResponse(res: express.Response, status: number, message: s
   res.status(status).send(`<h1>${message}</h1>`)
 }
 
-export function asArray<T>(param:T | Array<T>): Array<T> {
+export function asArray<T>(param: T | Array<T>): Array<T> {
   return Array.isArray(param) ? param : [param]
 }
-export function asArraySafe<T>(param:T | Array<T> | null | undefined):Array<T> | null {
+export function asArraySafe<T>(param: T | Array<T> | null | undefined): Array<T> | null {
   if (param == null) {
     return null
   }
@@ -22,8 +22,8 @@ export function asArraySafe<T>(param:T | Array<T> | null | undefined):Array<T> |
  * @param status 상태 코드
  * @param message 에러 메세지
  */
-export function responseError(res: Response, status:Status, message: string) {
-  const data:GeneralResponse<{}> = {
+export function responseError(res: Response, status: Status, message: string) {
+  const data: GeneralResponse<{}> = {
     status,
     message,
     data: {},
@@ -39,8 +39,8 @@ export function responseError(res: Response, status:Status, message: string) {
  * @param message 자료 메세지
  * @param data JSON 데이터
  */
-export function responseJSON<T>(res: Response, status:Status, message: string, data: T) {
-  const respData:GeneralResponse<T> = {
+export function responseJSON<T>(res: Response, status: Status, message: string, data: T) {
+  const respData: GeneralResponse<T> = {
     status,
     message,
     data,
@@ -49,7 +49,7 @@ export function responseJSON<T>(res: Response, status:Status, message: string, d
   res.status(status).json(respData)
 }
 
-export async function connectDB(host:string, pagename:string, dbname:string) {
+export async function connectDB(host: string, pagename: string, dbname: string) {
   const _database = await MongoClient.connect(`mongodb://${host}/${pagename}`)
   const _dbase = _database.db(dbname)
   return _dbase

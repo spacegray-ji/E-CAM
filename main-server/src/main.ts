@@ -135,13 +135,13 @@ async function registerPhoto(exp: Express, db: Db) {
     }
     // parse from model server
     const photoForm = new FormData()
-    const labeledPhotos:Array<DBPhotoInfo> = []
+    const labeledPhotos: Array<DBPhotoInfo> = []
     for (const bphoto of basicPhotos) {
       photoForm.append("images", await fileFromPath(`./photos/${bphoto.filename}`))
     }
     try {
       const modelRes = await got.post(`${modelServer}/process`, {
-        body:photoForm
+        body: photoForm
       }).json() as PhotoModelRes
       if (modelRes.error) {
         responseError(res, Status.INVALID_PARAMETER, "Wrong uploaded file.")
@@ -150,7 +150,7 @@ async function registerPhoto(exp: Express, db: Db) {
       // map photo info
       const valueMap = new Map<string, PhotoModelSingle>()
       for (const respData of modelRes.data) {
-        valueMap.set(respData.filename, respData)       
+        valueMap.set(respData.filename, respData)
       }
       // push to database
       for (const bphoto of basicPhotos) {
@@ -159,7 +159,7 @@ async function registerPhoto(exp: Express, db: Db) {
           responseError(res, Status.INTERNAL_SERVER_ERROR, `Unexpected error. from getting model server. ${JSON.stringify(modelRes)}`)
           return
         }
-        const pInfo:DBPhotoInfo = {
+        const pInfo: DBPhotoInfo = {
           ...bphoto,
           ...valueInfo,
         }
@@ -179,7 +179,7 @@ async function registerPhoto(exp: Express, db: Db) {
   })
   exp.get("/photo/:token", async (req, res) => {
     const token = req.params.token
-    const maxCount:number = safeNumber(req.query.count as unknown, 10)
+    const maxCount: number = safeNumber(req.query.count as unknown, 10)
     const user = verifyUserToken(token)
     if (user == null) {
       responseError(res, Status.NOT_FOUND, "No user assigned.")
@@ -215,7 +215,7 @@ async function registerDebug(exp: Express, db: Db) {
         responseError(res, Status.INVALID_PARAMETER, "No photo was provided.")
         return
       }
-      const photoList:string[] = []
+      const photoList: string[] = []
       for (const photo of photos) {
         const filename = `${short.generate()}.jpg`
         const tempPath = `./tmp/${filename}`
@@ -228,7 +228,7 @@ async function registerDebug(exp: Express, db: Db) {
         photoForm.append("images", await fileFromPath(path))
       }
       const modelRes = await got.post(`${modelServer}/process`, {
-        body:photoForm
+        body: photoForm
       }).json()
 
       responseJSON(res, Status.OK, "Response from model server", modelRes)
@@ -273,7 +273,7 @@ function verifyUserToken(token: string): UserInfo | undefined | null {
   }
 }
 
-function queryUserBySerial(serial: string){
+function queryUserBySerial(serial: string) {
   for (const [, user] of userTokens) {
     if (user.serial == serial) {
       return user
@@ -282,7 +282,7 @@ function queryUserBySerial(serial: string){
   return null
 }
 
-function safeNumber(input:unknown | null | undefined, dfvalue:number) { 
+function safeNumber(input: unknown | null | undefined, dfvalue: number) {
   if (input == null) {
     return dfvalue
   }
@@ -299,8 +299,7 @@ function safeNumber(input:unknown | null | undefined, dfvalue:number) {
   return dfvalue
 }
 
-function safeBoolean(input:unknown | null | undefined, dfvalue:boolean = false) 
-{
+function safeBoolean(input: unknown | null | undefined, dfvalue: boolean = false) {
   if (input == null) {
     return dfvalue
   }
@@ -338,7 +337,7 @@ async function clearTemp() {
   }
 }
 
-function removeDBInfoFromPhoto(pinfo:Array<DBPhotoInfo>) {
+function removeDBInfoFromPhoto(pinfo: Array<DBPhotoInfo>) {
   return pinfo.map((p) => {
     if ((p as any)["_id"] != null) {
       delete (p as any)["_id"]
