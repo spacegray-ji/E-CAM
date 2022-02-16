@@ -12,7 +12,7 @@
         "ts-node/register/transpile-only"
       ],
       "args": [
-        "src/index.ts",
+        "src/main.ts",
         "--debug",
       ],
       "cwd": "${workspaceRoot}",

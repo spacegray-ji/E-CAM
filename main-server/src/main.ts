@@ -17,6 +17,7 @@ import got from "got-cjs"
 import { FormData, File } from "formdata-node"
 import { fileFromPath } from "formdata-node/file-from-path"
 import { modelServer } from "./config"
+import bcrypt from "bcryptjs"
 
 /**
  * Express 생성
@@ -28,12 +29,53 @@ app.use(fileUpload({
   tempFileDir: "./tmp/",
 }))
 
-let debugKey = short.uuid().toString()
+function parseBody<T extends Record<string, string | number | boolean>>(value: Record<string, string> | null, defaultValue: T): T {
+  const out = defaultValue
+  const body = value
+  if (body == null) {
+    return defaultValue
+  }
+  try {
+    for (const key of Object.keys(body)) {
+      if (key.indexOf("prototype") >= 0) {
+        return defaultValue
+      }
+      if (out[key] !== undefined && body[key] != null) {
+        // type check
+        if (typeof out[key] === "number") {
+          const n = Number.parseInt(body[key])
+          if (!Number.isNaN(n) && Number.isFinite(n)) {
+            (out as any)[key] = n
+          }
+        } else if (typeof out[key] === "boolean") {
+          const bs = body[key].toLowerCase()
+          if (bs === "true") {
+            (out as any)[key] = true
+          } else if (bs === "false") {
+            (out as any)[key] = false
+          }
+        } else if (typeof out[key] === "string") {
+          (out as any)[key] = body[key]
+        }
+      }
+    }
+    return out
+  } catch (err) {
+    console.error(err)
+    return defaultValue
+  }
+}
 
+// 디버그 키
+let debugKey = short.uuid().toString()
+let saltKey = "salt"
 
 const userTokens = new Map<string, UserInfo>()
 const cameraTokens = new Map<string, string>()
 const tokenRemoveCallbacks = new Map<string, NodeJS.Timer>()
+
+let idIncrement = 1
+let lastIDTime = -1
 /**
  * 토큰 관련 express 명령어들을 등록합니다.
  * @param exp Express 객체
@@ -45,11 +87,13 @@ async function registerToken(exp: Express, db: Db) {
    */
   exp.put("/token", async (req, res) => {
     // paramter check
-    const serial = req.body.serial as string | null
-    const username: string = req.body.username ?? "default"
-    const isCamera: boolean = safeBoolean(req.body.isCamera)
-    if (serial == null) {
-      responseError(res, Status.INVALID_PARAMETER, "No serial or username was provided.")
+    const { serial, username, isCamera } = parseBody(req.body, {
+      serial: "",
+      username: "Default",
+      isCamera: false,
+    })
+    if (serial.length <= 0 || username.length <= 0 || serial.length > 32 || username.length > 32) {
+      responseError(res, Status.INVALID_PARAMETER, "Invalid parameter.", { token: "" })
       return
     }
     const token = short.generate()
@@ -84,9 +128,11 @@ async function registerPhoto(exp: Express, db: Db) {
   const photoDB = db.collection("photos")
 
   app.use("/photo/static/", express.static("./photos"))
-  exp.put("/photo/:token", async (req, res) => {
-    // parameter check
-    const token = req.params.token as string
+  exp.put("/photo", async (req, res) => {
+    // paramter check
+    const { token } = parseBody(req.body, {
+      token: ""
+    })
     const cameraSerial = verifyCameraToken(token)
     if (cameraSerial == null) {
       responseError(res, Status.NOT_FOUND, "Invalid token.")
@@ -120,12 +166,15 @@ async function registerPhoto(exp: Express, db: Db) {
         responseError(res, Status.INVALID_PARAMETER, "Photo is too large.")
         return
       }
+      // generate id
+      const imageId = createID()
       // generate filename
-      const filename = `${short.generate()}.jpg`
+      const filename = `${imageId}.jpg`
       await photo.mv(`./photos/${filename}`)
 
       // push info
       const pInfo: BasicPhotoInfo = {
+        id: imageId,
         user,
         filename,
         createdAt: new Date(Date.now()),
@@ -177,24 +226,36 @@ async function registerPhoto(exp: Express, db: Db) {
       responseError(res, Status.INTERNAL_SERVER_ERROR, "Internal Server Error. (Model server)")
     }
   })
-  exp.get("/photo/:token", async (req, res) => {
-    const token = req.params.token
+  exp.get("/photo", async (req, res) => {
+    const token = req.query.token ?? ""
     const maxCount: number = safeNumber(req.query.count as unknown, 10)
+    const result = {
+      dirpath: "/photo/static/",
+      photos: [] as PhotoInfo[],
+    }
+    if (typeof token !== "string") {
+      responseError(res, Status.INVALID_PARAMETER, "Invalid parameter.", result)
+      return
+    }
     const user = verifyUserToken(token)
     if (user == null) {
-      responseError(res, Status.NOT_FOUND, "No user assigned.")
+      responseError(res, Status.NOT_FOUND, "No user assigned.", result)
       return
     }
     const photos = await photoDB.find({ user }).limit(maxCount).toArray()
-    responseJSON(res, Status.OK, "Photo list.", {
-      photos: removeDBInfoFromPhoto(photos as unknown as DBPhotoInfo[]),
-    })
+    result.photos.push(...removeDBInfoFromPhoto(photos as any as DBPhotoInfo[]))
+    responseJSON(res, Status.OK, "Photo list.", result)
   })
 }
 
 async function registerDebug(exp: Express, db: Db) {
   const photoDB = db.collection("photos")
   exp.delete("/debug/photo", async (req, res) => {
+    if (req.body == null) {
+      responseError(res, Status.INVALID_PARAMETER, "No body received.")
+      return
+    }
+
     const authKey = req.body.authKey as string | null
     if (authKey != null && debugKey == authKey) {
       const photos = await photoDB.find().toArray()
@@ -208,6 +269,11 @@ async function registerDebug(exp: Express, db: Db) {
     }
   })
   exp.post("/debug/photo/model", async (req, res) => {
+    if (req.body == null) {
+      responseError(res, Status.INVALID_PARAMETER, "No body received.")
+      return
+    }
+
     const authKey = req.body.authKey as string | null
     if (authKey != null && debugKey == authKey) {
       const photos = asArraySafe(req.files?.photo)
@@ -244,6 +310,8 @@ async function init() {
   await clearTemp()
   // debug key
   debugKey = await fsp.readFile("./key.txt", "utf8").catch((rej) => short.uuid().toString())
+  // salt key
+  saltKey = await fsp.readFile("./globalsalt.txt", "utf8").catch((rej) => "salt")
   // register route
   const db = await connectDB("localhost", "local", "concept1")
   registerDebug(app, db)
@@ -323,6 +391,9 @@ function safeBoolean(input: unknown | null | undefined, dfvalue: boolean = false
  * @returns 토큰이 있으면 시리얼(`string`), 없으면 `null`
  */
 function verifyCameraToken(token: string): string | undefined | null {
+  if (token.length <= 0) {
+    return null
+  }
   if (cameraTokens.has(token)) {
     return cameraTokens.get(token)
   } else {
@@ -345,4 +416,20 @@ function removeDBInfoFromPhoto(pinfo: Array<DBPhotoInfo>) {
     delete (p as any)["user"]
     return p as PhotoInfo
   })
+}
+
+function createID() {
+  // Discord snowflake format
+  // With some garbage value..?
+  // https://discordapp.com/developers/docs/reference#snowflakes
+  if (Date.now() - lastIDTime >= 1000 * 60 * 60 * 24) {
+    lastIDTime = Date.now()
+    idIncrement = 1
+  }
+  const sftime = BigInt(Date.now() - 1420070400000)
+  const sfshift = sftime << 22n
+  const randID = BigInt(Math.floor(Math.random() * 1024)) << 12n
+  const increment = BigInt(idIncrement++)
+
+  return (sfshift | randID | increment).toString()
 }

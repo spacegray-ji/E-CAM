@@ -22,11 +22,11 @@ export function asArraySafe<T>(param: T | Array<T> | null | undefined): Array<T>
  * @param status 상태 코드
  * @param message 에러 메세지
  */
-export function responseError(res: Response, status: Status, message: string) {
-  const data: GeneralResponse<{}> = {
+export function responseError<T>(res: Response, status: Status, message: string, typedData?: T) {
+  const data: GeneralResponse<T | {}> = {
     status,
     message,
-    data: {},
+    data: typedData ?? {},
     isError: true,
   }
   res.status(status).json(data)
