@@ -26,7 +26,13 @@
         <TextView
             tools:text="Test"
             android:textSize="20sp"
-            android:id="@+id/photorow_state_text"
+            android:id="@+id/photorow_pixelsize_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <TextView
+            tools:text="CavityLevel"
+            android:textSize="20sp"
+            android:id="@+id/photorow_cavity_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
     </LinearLayout>

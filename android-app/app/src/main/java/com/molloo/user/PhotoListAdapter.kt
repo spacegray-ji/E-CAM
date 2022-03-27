@@ -18,7 +18,8 @@ class PhotoListAdapter(private val dataSet: ArrayList<PhotoInfo>):
      * (custom ViewHolder).
      */
     class ViewHolder(private val binding: PhotoInfoRowItemBinding) : RecyclerView.ViewHolder(binding.root) {
-        val descText = binding.photorowStateText
+        val pixelSizeText = binding.photorowPixelsizeText
+        val cavityLevelText = binding.photorowCavityText
         val image = binding.photorowImageView
     }
 
@@ -30,7 +31,8 @@ class PhotoListAdapter(private val dataSet: ArrayList<PhotoInfo>):
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.apply {
             val data = dataSet[position]
-            descText.text = "pixelSize: ${data.pixelSize}"
+            pixelSizeText.text = "pixelSize: ${data.pixelSize}"
+            cavityLevelText.text = "cavityLevel: ${data.cavityLevel}"
 
             Glide.with(image).load("${MainRequest.serverURL}/photo/static/${data.filename}")
                 .into(image)

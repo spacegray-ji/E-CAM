@@ -2,6 +2,7 @@ package com.molloo
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatTextView
@@ -42,7 +43,12 @@ class MainActivity : AppCompatActivity() {
             lifecycleScope.launch(Dispatchers.IO) {
                 val token = req.initToken(serial)
                 if (token.isNotEmpty()) {
-                    val fetchList = req.getPhotoList()
+                    val fetchedPhoto = req.takePhoto()
+                    if (fetchedPhoto == null) {
+                        Toast.makeText(this@MainActivity, R.string.error_toast, Toast.LENGTH_LONG).show()
+                        return@launch
+                    }
+                    val fetchList = arrayOf(fetchedPhoto)
                     val diffCb = ArrayDiff(photoList.toTypedArray(), fetchList) { o, n ->
                         val idEqual = o.id == n.id
                         val contentEqual = o == n
@@ -64,7 +70,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        photoList.add(PhotoInfo("12345", "aaa.aaa", 12222))
+        photoList.add(PhotoInfo("12345", "aaa.aaa", 12222, 30))
         binding.photoFetchedList.adapter = PhotoListAdapter(photoList)
         /*
         lifecycleScope.launch(Dispatchers.IO) {

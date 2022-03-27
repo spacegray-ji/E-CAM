@@ -6,6 +6,7 @@
     <!-- MainActivity -->
     <string name="serial_text">Serial</string>
     <string name="query_btn_text">query</string>
+    <string name="error_toast" translatable="false">Error!</string>
 
     <!-- Photo Info Item -->
     <string name="image_dummy_desc">Image</string>

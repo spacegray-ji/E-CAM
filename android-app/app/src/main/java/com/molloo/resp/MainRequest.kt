@@ -55,6 +55,22 @@ class MainRequest {
         return arrayOf()
     }
 
+    suspend fun takePhoto():PhotoInfo? {
+        try {
+            val photoResponse = requestGet("/photo/take", PhotoResBody.serializer()) {
+                addQueryParameter("token", token)
+            }
+            return if (photoResponse.isError) {
+                null
+            } else {
+                photoResponse.data.photos.getOrNull(0)
+            }
+        } catch (err: Exception) {
+            err.printStackTrace()
+        }
+        return null
+    }
+
     private suspend fun <T> requestGet(urlPath:String, contentSerializer: KSerializer<T>, fn:HttpUrl.Builder.() -> Any): GenResponse<T> {
         val httpBuilder = HttpUrl.parse("$serverURL$urlPath")!!.newBuilder().apply {
             fn(this)
