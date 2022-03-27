@@ -38,4 +38,5 @@ export interface PhotoModelRes {
 export interface PhotoModelSingle {
   filename: string,
   pixelSize: number,
+  cavityLevel: 0 | 1 | 2,
 }

@@ -18,6 +18,8 @@ import { FormData, File } from "formdata-node"
 import { fileFromPath } from "formdata-node/file-from-path"
 import { modelServer } from "./config"
 import bcrypt from "bcryptjs"
+import SocketIO, { Server } from "socket.io"
+import EventEmitter from "events"
 
 /**
  * Express 생성
@@ -28,6 +30,11 @@ app.use(fileUpload({
   useTempFiles: true,
   tempFileDir: "./tmp/",
 }))
+
+const socketio = new Server(3201)
+const cameraSockets = new Map<string, SocketIO.Socket>()
+
+const globalEvent = new EventEmitter()
 
 function parseBody<T extends Record<string, string | number | boolean>>(value: Record<string, string> | null, defaultValue: T): T {
   const out = defaultValue
@@ -220,6 +227,7 @@ async function registerPhoto(exp: Express, db: Db) {
         uploader: user,
         results: removeDBInfoFromPhoto(labeledPhotos),
       }
+      globalEvent.emit("uploadPhoto", photoRes)
       responseJSON(res, Status.OK, "Photo uploaded.", photoRes)
     } catch (err) {
       console.error(err)
@@ -245,6 +253,53 @@ async function registerPhoto(exp: Express, db: Db) {
     const photos = await photoDB.find({ user }).limit(maxCount).toArray()
     result.photos.push(...removeDBInfoFromPhoto(photos as any as DBPhotoInfo[]))
     responseJSON(res, Status.OK, "Photo list.", result)
+  })
+  exp.get("/photo/take", async (req, res) => {
+    const token = req.query.token ?? ""
+    const result = {
+      dirpath: "/photo/static/",
+      photos: [] as PhotoInfo[],
+    }
+
+    if (typeof token !== "string") {
+      responseError(res, Status.INVALID_PARAMETER, "Invalid parameter.", result)
+      return
+    }
+    const user = verifyUserToken(token)
+    if (user == null) {
+      responseError(res, Status.NOT_FOUND, "No user assigned.", result)
+      return
+    }
+
+    const cameraSocket = getCameraSocket(user.serial)
+    if (cameraSocket == null) {
+      responseError(res, Status.NOT_FOUND, "No camera assigned.", result)
+      return
+    }
+
+    try {
+      cameraSocket.emit("takePhoto", { user: user.username, serial: user.serial })
+      const photoRes = await new Promise<PhotoRes>((res, rej) => {
+        let lambda: (pres: PhotoRes) => void
+        const timeout = setTimeout(() => {
+          globalEvent.off("uploadPhoto", lambda)
+          rej("timeout")
+        }, 10000)
+        lambda = (pres: PhotoRes) => {
+          if (pres.uploader.serial === user.serial) {
+            clearTimeout(timeout)
+            globalEvent.off("uploadPhoto", lambda)
+            res(pres)
+          }
+        }
+        globalEvent.on("uploadPhoto", lambda)
+      })
+      result.photos.push(...photoRes.results)
+      responseJSON(res, Status.OK, "Captured photo from camera.", result)
+    } catch (err) {
+      responseError(res, Status.INTERNAL_SERVER_ERROR, "Cannot communicate with camera.", result)
+      return
+    }
   })
 }
 
@@ -312,6 +367,30 @@ async function init() {
   debugKey = await fsp.readFile("./key.txt", "utf8").catch((rej) => short.uuid().toString())
   // salt key
   saltKey = await fsp.readFile("./globalsalt.txt", "utf8").catch((rej) => "salt")
+  // register socketio
+  socketio.on("connection", (socket) => {
+    const token = socket.handshake.query.token ?? ""
+    if (typeof token !== "string") {
+      socket.emit("error", "Invalid token.")
+      socket.disconnect()
+      return
+    }
+    const serial = verifyCameraToken(token)
+    if (serial == null) {
+      socket.emit("error", "No device found with token " + token)
+      socket.disconnect()
+      return
+    }
+    const oldSocket = cameraSockets.get(serial)
+    oldSocket?.disconnect()
+
+    // set socket
+    cameraSockets.set(serial, socket)
+    socket.emit("connected", {
+      token,
+      serial,
+    })
+  })
   // register route
   const db = await connectDB("localhost", "local", "concept1")
   registerDebug(app, db)
@@ -399,6 +478,18 @@ function verifyCameraToken(token: string): string | undefined | null {
   } else {
     return null
   }
+}
+
+function getCameraSocket(serial: string) {
+  const socket = cameraSockets.get(serial)
+  if (socket == null) {
+    return null
+  }
+  if (socket.disconnected) {
+    cameraSockets.delete(serial)
+    return null
+  }
+  return socket
 }
 
 async function clearTemp() {
