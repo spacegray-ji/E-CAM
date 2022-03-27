@@ -58,26 +58,24 @@ def process():
             filename = secure_filename(file.filename)
             temp_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
             file.save(temp_path)
-            # Check is image
-            if imghdr.what(temp_path) == "jpeg":
-                # Image context
-                imgNumpy = read_image_float(temp_path, size=(224, 224))
-                img = Image.open(temp_path)
-                # Predict
-                prediction = fit_image(interpreter, imgNumpy)
-                print(prediction)
-                result["data"].append({
-                    "filename": filename,
-                    "pixelSize": img.width * img.height,
-                    "cavityLevel": np.argmax(prediction).item(),
-                })
-                # Close Image
-                img.close()
-                continue
-            else:
-                # No JPEG: Aborting!
-                pass
+            print("Image path: ", temp_path)
+            print("Image type: ", imghdr.what(temp_path))
+            # Image context
+            imgNumpy = read_image_float(temp_path, size=(224, 224))
+            img = Image.open(temp_path)
+            # Predict
+            prediction = fit_image(interpreter, imgNumpy)
+            print(prediction)
+            result["data"].append({
+                "filename": filename,
+                "pixelSize": img.width * img.height,
+                "cavityLevel": np.argmax(prediction).item(),
+            })
+            # Close Image
+            img.close()
             os.remove(temp_path)
+            continue
+        
         result["error"] = True
         result["statusCode"] = 400
         result["message"] = "Only JPG is allowed."
