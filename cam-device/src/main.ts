@@ -36,6 +36,72 @@ async function takePhoto() {
   return image
 }
 
+type SocketHandshakeRes = { token: string, serial: string }
+class CamReceiver {
+  public serial: string
+  protected host: { http: string, ws: string }
+
+  public token: string
+  protected socket: Socket | null = null
+  public constructor(serial: string, host: { http: string, ws: string }) {
+    this.serial = serial
+    this.host = host
+    this.token = ""
+  }
+  public async connect() {
+    this.token = await this.getToken()
+    this.socket = await this.connectToken()
+  }
+
+  public async connectToken() {
+    const socket = io(this.host.ws, {
+      query: {
+        token: this.token,
+      },
+      transports: ["websocket"],
+    })
+    socket.once("connected", async (r: SocketHandshakeRes) => {
+      console.log("Socket connected: " + JSON.stringify(r))
+    })
+    socket.on("error", (text: string) => {
+      if (text.startsWith("No device found with token")) {
+        if (!socket.disconnected) {
+          socket.disconnect()
+        }
+        this.connect()
+      }
+    })
+
+    socket.on("takePhoto", async (user: UserInfo) => {
+      console.log("TakePhoto request with " + JSON.stringify(user))
+      if (user.serial === mySerial) {
+        const image = await takePhoto()
+        const uploadRes = await uploadPhoto({ host: this.host.http, token: this.token, image })
+        console.log(JSON.stringify(uploadRes, null, 2))
+      }
+    })
+
+    return socket
+  }
+
+  public async getToken() {
+    const tokenBody = new FormData()
+    tokenBody.append("serial", this.serial)
+    tokenBody.append("isCamera", "true")
+    const tokenRes: { data: { token: string }, isError: boolean } = await got(`${this.host.http}/token`, {
+      method: "PUT",
+      throwHttpErrors: false,
+      body: tokenBody
+    }).json()
+    if (tokenRes.isError) {
+      console.error(JSON.stringify(tokenRes, null, 2))
+      throw new Error("Server error")
+    }
+    const token = tokenRes.data.token
+    return token
+  }
+}
+
 async function uploadPhoto(params: { host: string, token: string, image: Buffer }) {
   const { host, token, image } = params
   const uploadBody = new FormData()
@@ -49,61 +115,9 @@ async function uploadPhoto(params: { host: string, token: string, image: Buffer 
   return uploadRes
 }
 
-async function connectToken(host: string, serial: string) {
-  const tokenBody = new FormData()
-  tokenBody.append("serial", serial)
-  tokenBody.append("isCamera", "true")
-  const tokenRes: { data: { token: string }, isError: boolean } = await got(`${host}/token`, {
-    method: "PUT",
-    throwHttpErrors: false,
-    body: tokenBody
-  }).json()
-  if (tokenRes.isError) {
-    console.error(JSON.stringify(tokenRes, null, 2))
-    throw new Error("Server error")
-  }
-  const token = tokenRes.data.token
-  return token
-}
-
-type SocketHandshakeRes = { token: string, serial: string }
-async function connectSocket(host: { http: string, ws: string }, token: string) {
-  const socket = io(host.ws, {
-    query: {
-      token,
-    },
-    transports: ["websocket"],
-  })
-  const response = await new Promise<SocketHandshakeRes>((res, rej) => {
-    const timeout = setTimeout(() => rej("Timeout"), 10000)
-    socket.once("error", (err) => {
-      console.error("Error received: " + err)
-      clearTimeout(timeout)
-      throw new Error(err)
-    })
-    socket.once("connected", (r: SocketHandshakeRes) => {
-      clearTimeout(timeout)
-      res(r)
-    })
-  })
-  socket.on("takePhoto", async (user: UserInfo) => {
-    console.log("TakePhoto request with " + JSON.stringify(user))
-    if (user.serial === mySerial) {
-      const image = await takePhoto()
-      const uploadRes = await uploadPhoto({ host: host.http, token, image })
-      console.log(JSON.stringify(uploadRes, null, 2))
-    }
-  })
-  return {
-    socket,
-    response,
-  }
-}
-
 async function main() {
-  const token = await connectToken(myHost.http, mySerial)
-  const { socket, response } = await connectSocket(myHost, token)
-  console.log("Socket Response: " + JSON.stringify(response))
+  const receiver = new CamReceiver(mySerial, myHost)
+  await receiver.connect()
 }
 
 main()
