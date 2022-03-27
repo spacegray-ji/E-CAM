@@ -4,6 +4,9 @@ from flask import Flask, render_template, url_for, flash, redirect, request, jso
 from werkzeug.utils import secure_filename
 from PIL import Image
 import imghdr
+import tensorflow as tf
+from shapeimg import read_image_float, fit_image
+import numpy as np
 
 # https://flask.palletsprojects.com/en/2.0.x/patterns/fileuploads/
 UPLOAD_FOLDER = "./uploads"
@@ -11,6 +14,9 @@ ALLOWED_EXTENSIONS = {"jpg"}
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+interpreter = tf.lite.Interpreter(model_path="./data/model.tflite")
+interpreter.allocate_tensors()
 
 
 def allowed_file(filename: str):
@@ -52,22 +58,24 @@ def process():
             filename = secure_filename(file.filename)
             temp_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
             file.save(temp_path)
-            # Check is image
-            if imghdr.what(temp_path) == "jpeg":
-                # Image context
-                img = Image.open(temp_path)
-
-                result["data"].append({
-                    "filename": filename,
-                    "pixelSize": img.width * img.height,
-                })
-                # Close Image
-                img.close()
-                os.remove(temp_path)
-                continue
-            else:
-                # No JPEG: Aborting!
-                pass
+            print("Image path: ", temp_path)
+            print("Image type: ", imghdr.what(temp_path))
+            # Image context
+            imgNumpy = read_image_float(temp_path, size=(224, 224))
+            img = Image.open(temp_path)
+            # Predict
+            prediction = fit_image(interpreter, imgNumpy)
+            print(prediction)
+            result["data"].append({
+                "filename": filename,
+                "pixelSize": img.width * img.height,
+                "cavityLevel": np.argmax(prediction).item(),
+            })
+            # Close Image
+            img.close()
+            os.remove(temp_path)
+            continue
+        
         result["error"] = True
         result["statusCode"] = 400
         result["message"] = "Only JPG is allowed."
