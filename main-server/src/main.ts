@@ -278,7 +278,7 @@ async function registerPhoto(exp: Express, db: Db) {
     }
 
     try {
-      cameraSocket.emit("takePhoto", { user: user.username, serial: user.serial })
+      cameraSocket.emit("takePhoto", user)
       const photoRes = await new Promise<PhotoRes>((res, rej) => {
         let lambda: (pres: PhotoRes) => void
         const timeout = setTimeout(() => {
