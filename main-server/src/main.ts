@@ -20,6 +20,7 @@ import { modelServer } from "./config"
 import bcrypt from "bcryptjs"
 import SocketIO, { Server } from "socket.io"
 import EventEmitter from "events"
+import sharp from "sharp"
 
 /**
  * Express 생성
@@ -163,30 +164,36 @@ async function registerPhoto(exp: Express, db: Db) {
     // check fields
     const basicPhotos: BasicPhotoInfo[] = []
     for (const photo of photos) {
-      // check jpeg
-      if (photo.mimetype != "image/jpeg") {
-        responseError(res, Status.INVALID_PARAMETER, "Only jpeg is supported.")
-        return
-      }
       // check size
       if (photo.size >= 10 * oneMiB) {
         responseError(res, Status.INVALID_PARAMETER, "Photo is too large.")
         return
       }
-      // generate id
-      const imageId = createID()
-      // generate filename
-      const filename = `${imageId}.jpg`
-      await photo.mv(`./photos/${filename}`)
+      try {
+        const photoData = await fsp.readFile(photo.tempFilePath)
+        const image = await sharp(photoData).jpeg({
+          mozjpeg: true
+        }).toBuffer()
 
-      // push info
-      const pInfo: BasicPhotoInfo = {
-        id: imageId,
-        user,
-        filename,
-        createdAt: new Date(Date.now()),
+        // generate id
+        const imageId = createID()
+        // generate filename
+        const filename = `${imageId}.jpg`
+        await fsp.writeFile(`./photos/${filename}`, image)
+
+        // push info
+        const pInfo: BasicPhotoInfo = {
+          id: imageId,
+          user,
+          filename,
+          createdAt: new Date(Date.now()),
+        }
+        basicPhotos.push(pInfo)
+      } catch (err) {
+        console.error(err)
+        responseError(res, Status.INVALID_PARAMETER, `${photo.name} Image isn't supported.`)
+        return
       }
-      basicPhotos.push(pInfo)
       // await photoDB.insertOne(pInfo)
     }
     // parse from model server
