@@ -7,7 +7,11 @@ import { io, Socket } from "socket.io-client"
 import { UserInfo } from "./user-info"
 
 const mySerial = "12345"
-const myHost = "http://192.168.3.95:3200"
+
+const myHost = {
+  http: "http://192.168.3.95:3200",
+  ws: "ws://192.168.3.95:3201"
+}
 
 async function takePhoto() {
   if (await fs.pathExists("./data/camera.jpg")) {
@@ -22,6 +26,8 @@ async function takePhoto() {
       child.on("error", rej)
       child.on("exit", res)
     })
+  } else {
+    return fs.readFile("./data/dummy.jpg")
   }
   if (!await fs.pathExists("./data/camera.jpg")) {
     throw new Error("Camera not found")
@@ -61,8 +67,8 @@ async function connectToken(host: string, serial: string) {
 }
 
 type SocketHandshakeRes = { token: string, serial: string }
-async function connectSocket(host: string, token: string) {
-  const socket = io(host, {
+async function connectSocket(host: { http: string, ws: string }, token: string) {
+  const socket = io(host.ws, {
     query: {
       token,
     },
@@ -81,11 +87,11 @@ async function connectSocket(host: string, token: string) {
     })
   })
   socket.on("takePhoto", async (user: UserInfo) => {
-    console.log("TakePhoto request with " + user)
+    console.log("TakePhoto request with " + JSON.stringify(user))
     if (user.serial === mySerial) {
       const image = await takePhoto()
-      const uploadRes = await uploadPhoto({ host, token, image })
-      console.log(uploadRes)
+      const uploadRes = await uploadPhoto({ host: host.http, token, image })
+      console.log(JSON.stringify(uploadRes, null, 2))
     }
   })
   return {
@@ -95,9 +101,9 @@ async function connectSocket(host: string, token: string) {
 }
 
 async function main() {
-  const token = await connectToken(myHost, mySerial)
+  const token = await connectToken(myHost.http, mySerial)
   const { socket, response } = await connectSocket(myHost, token)
-  console.log("Socket Response: " + response)
+  console.log("Socket Response: " + JSON.stringify(response))
 }
 
 main()
