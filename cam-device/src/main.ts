@@ -4,9 +4,18 @@ import os from "os"
 import fs from "fs-extra"
 import FormData from "form-data"
 import { io, Socket } from "socket.io-client"
+import { Gpio } from "pigpio"
 import { UserInfo } from "./user-info"
 
 const mySerial = "12345"
+
+let lastTime = Date.now()
+const btn = new Gpio(17, {
+  mode: Gpio.INPUT,
+  pullUpDown: Gpio.PUD_DOWN,
+  alert: true,
+  edge: Gpio.FALLING_EDGE,
+})
 
 const myHost = {
   http: "http://192.168.3.95:3200",
@@ -53,6 +62,19 @@ class CamReceiver {
     this.socket = await this.connectToken()
   }
 
+  public async activateButton() {
+    // Register button
+    btn.on("interrupt", async (level) => {
+      console.log(`Button Pressed with ${level}`)
+      if (Date.now() - lastTime >= 3000) {
+        lastTime = Date.now()
+        const image = await takePhoto()
+        const uploadRes = await uploadPhoto({ host: this.host.http, token: this.token, image })
+        console.log(JSON.stringify(uploadRes, null, 2))
+      }
+    })
+  }
+
   public async connectToken() {
     const socket = io(this.host.ws, {
       query: {
@@ -80,7 +102,6 @@ class CamReceiver {
         console.log(JSON.stringify(uploadRes, null, 2))
       }
     })
-
     return socket
   }
 
@@ -118,8 +139,8 @@ async function uploadPhoto(params: { host: string, token: string, image: Buffer 
 async function main() {
   const receiver = new CamReceiver(mySerial, myHost)
   await receiver.connect()
+  await receiver.activateButton()
 }
-
 main()
 
 // ffmpeg -f v4l2 -video_size 1920x1080 -input_format mjpeg -i /dev/video0 -frames:v 1 test3.jpg -y
