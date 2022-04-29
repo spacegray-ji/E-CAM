@@ -10,3 +10,6 @@ coverage
 yarn.lock
 
 data/**
+
+# WebRTC-Streamer
+webrtc-streamer

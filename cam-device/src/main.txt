@@ -1,6 +1,6 @@
 import got from "got-cjs"
 import { spawn } from "child_process"
-import os from "os"
+import os from "node:os"
 import fs from "fs-extra"
 import FormData from "form-data"
 import { io, Socket } from "socket.io-client"
@@ -137,9 +137,9 @@ async function uploadPhoto(params: { host: string, token: string, image: Buffer 
 }
 
 async function main() {
-  const receiver = new CamReceiver(mySerial, myHost)
-  await receiver.connect()
-  await receiver.activateButton()
+  // const receiver = new CamReceiver(mySerial, myHost)
+  // await receiver.connect()
+  // await receiver.activateButton()
 }
 main()
 
