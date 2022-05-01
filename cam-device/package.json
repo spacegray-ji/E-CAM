@@ -12,7 +12,8 @@
     "rimraf": "./node_modules/rimraf/bin.js",
     "clean": "rimraf build/",
     "build": "npm run clean && tsc -p tsconfig.json",
-    "start": "node build/main.mjs && sudo node build/main_gpio.mjs"
+    "start-main": "env DISPLAY=:0 node build/main.mjs",
+    "start-gpio": "sudo node build/main_gpio.mjs"
   },
   "engines": {
     "node": ">=16"
