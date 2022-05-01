@@ -102,8 +102,6 @@ export class SIOClient {
           "--ignore-gpu-blocklist",
           "--enable-gpu-rasterization",
           "--enable-zero-copy",
-          "--enable-drdc",
-          "--canvas-oop-rasterization",
           "--start-fullscreen"
         ],
         ignoreDefaultArgs: ["--enable-automation"],

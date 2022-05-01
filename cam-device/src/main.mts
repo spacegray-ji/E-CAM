@@ -13,6 +13,7 @@ import { myOS, OSType } from "./struct/ostype.mjs"
 import { getCameraToken, TokenObj } from "./mainreq.mjs"
 import fsp from "fs/promises"
 import { SIOClient } from "./feature/sioclient.mjs"
+import puppeteer from "puppeteer"
 
 const debug = Debug("molloo:main")
 
@@ -59,6 +60,27 @@ async function main() {
   await sioClient.connect()
 
 }
+
+async function mainP() {
+  await puppeteer.launch({
+    headless: false,
+    args: [
+      "--enable-features=VaapiVideoDecoder",
+      "--use-gl=desktop",
+      "--disable-features=UseOzonePlatform",
+      "--ignore-gpu-blocklist",
+      "--enable-gpu-rasterization",
+      "--enable-zero-copy",
+      "--enable-drdc",
+      "--canvas-oop-rasterization",
+      "--start-fullscreen"
+    ],
+    ignoreDefaultArgs: ["--enable-automation"],
+    defaultViewport: null,
+  })
+}
+
+// 
 
 main()
 
