@@ -107,7 +107,8 @@ export class SIOClient {
         ignoreDefaultArgs: ["--enable-automation"],
         defaultViewport: null,
       })
-      browser.once("close", () => {
+      browser.on("disconnected", () => {
+        debug("Browser Disconnected")
         this.runningBrowser = false
 
         // sleep screen if linux
