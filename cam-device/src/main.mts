@@ -21,7 +21,7 @@ async function main() {
   const tokenObj: TokenObj = { token: "", serial: "" }
   // get token & check serial & main-server
   try {
-    tokenObj.serial = await fsp.readFile("./serial.txt", "utf8")
+    tokenObj.serial = (await fsp.readFile("./serial.txt", "utf8")).trim()
     debug(`Device Serial: ${chalk.green(tokenObj.serial)}`)
     tokenObj.token = await getCameraToken(tokenObj.serial)
     debug(`Device Token: ${chalk.green(tokenObj.token)}`)

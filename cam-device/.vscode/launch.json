@@ -32,7 +32,7 @@
       "runtimeExecutable": "node",
       "runtimeArgs": [],
       "args": [
-        "build/main2.mjs",
+        "build/main.mjs",
         "--debug",
       ],
       "cwd": "${workspaceRoot}",
