@@ -108,6 +108,12 @@ export async function checkStreamer() {
     })
     console.log(chalk.green(`Streaming Server is already running.`))
   } catch (err) {
+    // set resolution
+    if (myOS === OSType.LINUX) {
+      await exec(`v4l2-ctl -d /dev/video0 --set-fmt-video=width=${1920},height=${1080}`)
+      await exec(`v4l2-ctl -d /dev/video0 --set-parm=${24}`)
+    }
+
     // start server
     let execName = myOS === OSType.WINDOWS ? "webrtc-streamer.exe" : "webrtc-streamer"
     console.log(chalk.red(`Streaming Server is not found.`))

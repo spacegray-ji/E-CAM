@@ -122,8 +122,10 @@ export class SIOClient {
 
       const page = await browser.newPage()
       await page.goto(`http://127.0.0.1:${nextjsPort}/preview?close&overlay`)
-      await page.exposeFunction("closePupperteer", () => {
-        browser.close()
+      await page.exposeFunction("closePuppeteer", async () => {
+        debug("Close Puppeteer called")
+        await page.close()
+        await browser.close()
       })
     }
   }

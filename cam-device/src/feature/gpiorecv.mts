@@ -59,11 +59,11 @@ export class GPIORecv {
   public register() {
     this.addOnPress(redBtnPin, () => {
       debug(`Red Button Pressed`)
-      this.webSocket?.send("pressNegativeBtn")
+      this.webSocket?.send(JSON.stringify({ command: "pressNegativeBtn" }))
     })
     this.addOnPress(blueBtnPin, () => {
       debug(`Blue Button Pressed`)
-      this.webSocket?.send("pressPositiveBtn")
+      this.webSocket?.send(JSON.stringify({ command: "pressPositiveBtn" }))
     })
   }
   /**

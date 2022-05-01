@@ -233,11 +233,12 @@ const App = (props:PropType) => {
       setShowImage(false)
     } else {
       try {
-        window.close()
         let wany = window as any
         // puppeteer close
-        if (wany.closePupperteer != null) {
-          wany.closePupperteer()
+        if (wany.closePuppeteer != null) {
+          wany.closePuppeteer()
+        } else {
+          window.close()
         }
         setTimeout(() => {
           toast.warn("창을 닫을 수 없어요. 수동으로 창을 닫아주세요.")
