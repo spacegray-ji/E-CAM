@@ -130,6 +130,28 @@ async function registerToken(exp: Express, db: Db) {
     }
     responseJSON(res, Status.OK, "Token created.", { token })
   })
+  exp.get("/verifytoken", async (req, res) => {
+    const token = req.query.token ?? ""
+    const result = {
+      valid: false,
+      type: "",
+      serial: "",
+    }
+    if (typeof token !== "string") {
+      responseError(res, Status.INVALID_PARAMETER, "Invalid parameter.", result)
+      return
+    }
+    const user = verifyUserToken(token)
+    const camera = verifyCameraToken(token)
+    if (user == null && camera == null) {
+      responseJSON(res, Status.OK, "[TOKEN_NOT_FOUND] Token is invalid", result)
+    } else {
+      result.valid = true
+      result.type = user != null ? "user" : "camera"
+      result.serial = user != null ? user.serial : (camera as string)
+      responseJSON(res, Status.OK, "Token is valid", result)
+    }
+  })
 }
 
 async function registerPhoto(exp: Express, db: Db) {
@@ -143,7 +165,7 @@ async function registerPhoto(exp: Express, db: Db) {
     })
     const cameraSerial = verifyCameraToken(token)
     if (cameraSerial == null) {
-      responseError(res, Status.NOT_FOUND, "Invalid token.")
+      responseError(res, Status.NOT_FOUND, "[TOKEN_NOT_FOUND] Invalid token.")
       return
     }
     const user = queryUserBySerial(cameraSerial)
@@ -254,12 +276,42 @@ async function registerPhoto(exp: Express, db: Db) {
     }
     const user = verifyUserToken(token)
     if (user == null) {
-      responseError(res, Status.NOT_FOUND, "No user assigned.", result)
+      responseError(res, Status.NOT_FOUND, "[TOKEN_NOT_FOUND] No user assigned.", result)
       return
     }
     const photos = await photoDB.find({ user }).limit(maxCount).toArray()
     result.photos.push(...removeDBInfoFromPhoto(photos as any as DBPhotoInfo[]))
     responseJSON(res, Status.OK, "Photo list.", result)
+  })
+  exp.post("/photo/request", async (req, res) => {
+    const token = req.body.token ?? ""
+    const result = {
+
+    }
+
+    if (typeof token !== "string") {
+      responseError(res, Status.INVALID_PARAMETER, "Invalid parameter.", result)
+      return
+    }
+    const user = verifyUserToken(token)
+    if (user == null) {
+      responseError(res, Status.NOT_FOUND, "[TOKEN_NOT_FOUND] No user assigned.", result)
+      return
+    }
+
+    const cameraSocket = getCameraSocket(user.serial)
+    if (cameraSocket == null) {
+      responseError(res, Status.NOT_FOUND, "No camera assigned.", result)
+      return
+    }
+
+    try {
+      cameraSocket.emit("takePhotoAction")
+      responseJSON(res, Status.OK, "Request success.", result)
+    } catch (err) {
+      responseError(res, Status.INTERNAL_SERVER_ERROR, "Cannot communicate with camera.", result)
+      return
+    }
   })
   exp.get("/photo/take", async (req, res) => {
     const token = req.query.token ?? ""
@@ -274,7 +326,7 @@ async function registerPhoto(exp: Express, db: Db) {
     }
     const user = verifyUserToken(token)
     if (user == null) {
-      responseError(res, Status.NOT_FOUND, "No user assigned.", result)
+      responseError(res, Status.NOT_FOUND, "[TOKEN_NOT_FOUND] No user assigned.", result)
       return
     }
 
@@ -384,7 +436,7 @@ async function init() {
     }
     const serial = verifyCameraToken(token)
     if (serial == null) {
-      socket.emit("error", "No device found with token " + token)
+      socket.emit("error", "[TOKEN_NOT_FOUND] No device found with token " + token)
       socket.disconnect()
       return
     }
@@ -399,7 +451,7 @@ async function init() {
     })
   })
   // register route
-  const db = await connectDB("localhost", "local", "concept1")
+  const db = await connectDB("127.0.0.1", "local", "concept1")
   registerDebug(app, db)
   registerToken(app, db)
   registerPhoto(app, db)
