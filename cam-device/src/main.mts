@@ -21,12 +21,13 @@ async function main() {
   const tokenObj: TokenObj = { token: "", serial: "" }
   // get token & check serial & main-server
   try {
-    tokenObj.serial = (await fsp.readFile("./serial.txt", "utf8")).trim()
+    tokenObj.serial = JSON.parse(await fsp.readFile("./serial.json", "utf8")).serial
     debug(`Device Serial: ${chalk.green(tokenObj.serial)}`)
     tokenObj.token = await getCameraToken(tokenObj.serial)
     debug(`Device Token: ${chalk.green(tokenObj.token)}`)
   } catch (err) {
-    console.error(chalk.red("Generating token failed. Check main server or serial.txt file."))
+    console.error(chalk.red("Generating token failed. Check main server or serial.json file."))
+    await fsp.writeFile("./serial.json", JSON.stringify({ serial: "" }, null, 4))
     console.error(err)
     return
   }
