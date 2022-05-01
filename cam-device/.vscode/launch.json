@@ -38,7 +38,7 @@
       "cwd": "${workspaceRoot}",
       "internalConsoleOptions": "neverOpen",
       "console": "integratedTerminal",
-      "preLaunchTask": "npm: build",
+      "preLaunchTask": "buildTS",
       "skipFiles": [
         "<node_internals>/**",
         "node_modules/**"

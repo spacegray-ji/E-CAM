@@ -17,14 +17,20 @@
     "node": ">=16"
   },
   "dependencies": {
+    "@types/decompress": "^4.2.4",
+    "@types/multer": "^1.4.7",
     "@types/node": "^17.0.30",
+    "@types/ws": "^8.5.3",
     "chalk": "^5.0.1",
     "debug": "^4.3.4",
+    "decompress": "^4.2.1",
     "express": "^4.17.3",
     "form-data": "^4.0.0",
     "fs-extra": "^10.0.1",
-    "got-cjs": "^12.0.1",
+    "got": "^12.0.4",
+    "multer": "^1.4.4",
     "pigpio": "^3.3.1",
+    "puppeteer": "^13.7.0",
     "socket.io-client": "^4.4.1",
     "ws": "^8.5.0"
   },

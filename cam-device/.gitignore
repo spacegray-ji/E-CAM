@@ -13,3 +13,9 @@ data/**
 
 # WebRTC-Streamer
 webrtc-streamer
+
+# Serial Info
+serial.txt
+
+# Uploads
+uploads/**

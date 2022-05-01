@@ -7,6 +7,8 @@ export enum OSType {
 }
 
 export const myOS = getOSType()
+export const is64Bit = process.arch.indexOf("64") >= 0
+export const isARM = process.arch.indexOf("arm") >= 0
 
 function getOSType() {
   const osStr = process.platform
