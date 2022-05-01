@@ -143,8 +143,8 @@ export class StreamerDaemon {
     }
     debug(`Exec ${this.execPath} ${args.join(" ")}`)
 
-    const exec = spawn(this.execName, args, {
-      cwd: this.dirPath,
+    const exec = spawn(this.execPath, args, {
+      cwd: Path.resolve(this.dirPath),
       detached: true,
       stdio: "ignore",
     })
