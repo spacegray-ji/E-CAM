@@ -80,7 +80,6 @@ export const Camera = React.forwardRef<unknown, CameraProps>(
           if (context && player?.current) {
             context.drawImage(player.current, sX, sY, sW, sH, 0, 0, sW, sH);
           }
-
           const imgData = canvas.current.toDataURL('image/jpeg');
           return imgData;
         } else {

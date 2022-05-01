@@ -1,6 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next"
-import { cameraName } from "../../../libs/struct/conf"
+import { cameraName } from "../../../libs/struct/conf_server"
 
 type Data = {
   name: string

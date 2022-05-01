@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react'
 import styled from 'styled-components';
 
 import { ToastContainer, toast } from "react-toastify"
@@ -6,8 +6,9 @@ import "react-toastify/dist/ReactToastify.css"
 
 import Image from "next/image"
 import { useRouter } from "next/router"
+import useWebSocket, { ReadyState } from "react-use-websocket"
 import { Camera, CameraType } from "../components/camera"
-import { cameraName, streamingPort } from '../libs/struct/conf'
+import { streamingPort, wsPort } from '../libs/struct/conf'
 import styles from "../styles/Preview.module.css"
 import type { GetStaticProps } from "next"
 import { myOS, OSType } from "../libs/struct/ostype"
@@ -142,7 +143,7 @@ type PropType = {
 
 export const getStaticProps:GetStaticProps = async (context) => {
   const prop:PropType = {
-    streamServer: `http://127.0.0.1:${streamingPort}`,
+    streamServer: `http://0.0.0.0:${streamingPort}`,
   }
   return {
     props: prop
@@ -150,9 +151,6 @@ export const getStaticProps:GetStaticProps = async (context) => {
 }
 
 const App = (props:PropType) => {
-  const router = useRouter()
-  const useClose = router.query.close != null
-  const useOverlay = router.query.overlay != null
 
   const [numberOfCameras, setNumberOfCameras] = useState(0);
   const [image, setImage] = useState<string | null>(null);
@@ -160,9 +158,20 @@ const App = (props:PropType) => {
   const camera = useRef<CameraType>(null);
   const [streamServer, setStreamServer] = useState<string>(props.
     streamServer)
+  const [socketUrl, setSocketUrl] = useState(`ws://0.0.0.0:${wsPort}`)
 
   const [isInited, setIsInited] = useState(false)
   const [guideLevel, setGuideLevel] = useState(0)
+  const [sentCount, setSentCount] = useState(0)
+
+  // External
+  const router = useRouter()
+  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl)
+  const useClose = router.query.close != null
+  const useOverlay = router.query.overlay != null
+
+
+
 
   const setShowImage = (show:boolean, useHistory = false) => {
     _setShowImage(show)
@@ -171,14 +180,30 @@ const App = (props:PropType) => {
   const onPositiveBtnClick = async (ev:Event | null) => {
     if (showImage) {
       const sendImage = async () => {
-        const sleep = (ms:number) => new Promise(resolve => setTimeout(resolve, ms))
-        await sleep(1000)
-        const test = await fetch("/api/hello")
-        return test
+        /*
+          const sleep = (ms:number) => new Promise(resolve => setTimeout(resolve, ms))
+          await sleep(1000)
+          sendMessage("World!!!")
+        */
+        if (image == null) {
+          console.log("Image is null! Aborting!")
+          throw new Error("No Image Found.")
+        }
+
+        const formdata = new FormData()
+        formdata.append("photo", await (await fetch(image)).blob())
+        const postPhoto = await fetch("/local/api/photo", {
+          method: "POST",
+          body: formdata,
+        })
+        const postData:unknown = await postPhoto.json()
+        console.log("Uploaded Photo: " + JSON.stringify(postData))
+        setSentCount(sentCount + 1)
+        return postData
       }
       await toast.promise(sendImage, {
-        pending: "사진을 보내는 중입니다.",
-        success: "사진을 보냈습니다.",
+        pending: "📨 사진을 보내는 중입니다.",
+        success: `👏 현재까지 ${sentCount + 1}개의 사진을 보냈습니다.`,
         error: "사진을 보내는 중에 오류가 발생했습니다.",
       })
       if (guideLevel <= 2) {
@@ -189,12 +214,14 @@ const App = (props:PropType) => {
     } else {
       if (camera.current) {
         const photo = camera.current.takePhoto()
-        console.log(photo)
+        // console.log(photo)
         setImage(photo)
         if (guideLevel <= 1) {
           setGuideLevel(2)
-          toast.info("촬영 성공! 이제 파란색 버튼을 눌러 사진을 보낼 수 있습니다.")
-          toast.error("마음에 들지 않는다면 빨간 버튼을 눌러 취소하고 다시 찍을 수 있어요.")
+          toast.info(`촬영 성공! 이제 ${useClose ? "파란🟦" : "보내기"}  버튼을 눌러 사진을 보낼 수 있습니다.`)
+          toast.error(`마음에 들지 않는다면 ${useClose ? "빨간🟥 버튼을 눌러" : "촬영한 사진을 클릭해"} 취소🚫하고 다시 찍을 수 있어요.`)
+        } else {
+          toast.info("촬영 성공!", {autoClose: 2000})
         }
         setShowImage(true, true)
       }
@@ -205,22 +232,83 @@ const App = (props:PropType) => {
     if (showImage) {
       setShowImage(false)
     } else {
-      window.close()
+      try {
+        window.close()
+        let wany = window as any
+        // puppeteer close
+        if (wany.closePupperteer != null) {
+          wany.closePupperteer()
+        }
+        setTimeout(() => {
+          toast.warn("창을 닫을 수 없어요. 수동으로 창을 닫아주세요.")
+        }, 500)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+  }
+
+  // Client side only init
+  if (typeof window !== "undefined") {
+    if (streamServer.indexOf("0.0.0.0") >= 0) {
+      setStreamServer(streamServer.replace("0.0.0.0", location.hostname))
+    }
+    if (socketUrl.indexOf("0.0.0.0") >= 0) {
+      setSocketUrl(socketUrl.replace("0.0.0.0", location.hostname))
     }
   }
 
   useEffect(() => {
+    if (!router.isReady) {
+      return
+    }
     const firstInit = (window as any).firstinit === true
     if (firstInit) {
       return
     }
-    (window as any).firstinit = true
+    (window as any).firstinit = false
     setIsInited(true)
+    console.log("Query: " + JSON.stringify(router.query))
     // Singleton
-    toast.info("하늘색 버튼을 눌러 촬영하세요.")
-    toast.error("빨간색 버튼을 눌러 종료하세요.")
+    toast.info(`${useClose ? "파란🟦" : "촬영"} 버튼을 눌러 촬영📷하세요.`)
+    if (useClose) {
+      toast.error("빨간🟥 버튼을 눌러 종료❌하세요.")
+    }
     setGuideLevel(guideLevel + 1)
-  }, [])
+  }, [router.isReady])
+
+  useEffect(() => {
+    if (lastMessage !== null) {
+      const decodeMessage = async () => {
+        let data:Blob | string = lastMessage.data
+        let dataStr:string = ""
+        if (typeof data === "string") {
+          dataStr = data
+        } else {
+          dataStr = await data.text()
+        }
+        // use JSON if starts with { and ends with }
+        if (dataStr.startsWith("{") && dataStr.endsWith("}")) {
+          // Object-scope
+          const obj:{[key in string]:unknown} = JSON.parse(dataStr)
+          switch (obj.command) {
+            case "pressPositiveBtn":
+              onPositiveBtnClick(null)
+              break
+            case "pressNegativeBtn":
+              onNegativeBtnClick(null)
+              break
+            default:
+              console.log("Unknown command: " + obj.command)
+          }
+        } else {
+          // String-scope
+          console.log("Unknown message: " + dataStr)
+        }
+      }
+      decodeMessage()
+    }
+  }, [lastMessage])
 
   return (
     <Wrapper>
