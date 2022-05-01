@@ -8,7 +8,7 @@ import Image from "next/image"
 import { useRouter } from "next/router"
 import useWebSocket, { ReadyState } from "react-use-websocket"
 import { Camera, CameraType } from "../components/camera"
-import { streamingPort, wsPort } from '../libs/struct/conf'
+import { nextjsPort, streamingPort, wsPort } from '../libs/struct/conf'
 import styles from "../styles/Preview.module.css"
 import type { GetStaticProps } from "next"
 import { myOS, OSType } from "../libs/struct/ostype"
@@ -143,7 +143,7 @@ type PropType = {
 }
 
 export const getStaticProps:GetStaticProps = async (context) => {
-  const cameraName = (await (await fetch("/api/camera/primarydevice")).json()).name ?? ""
+  const cameraName = (await (await fetch(`http://127.0.0.1:${nextjsPort}/api/camera/primarydevice`)).json()).name ?? ""
   const prop:PropType = {
     streamServer: `http://0.0.0.0:${streamingPort}`,
     sCameraName: cameraName,
