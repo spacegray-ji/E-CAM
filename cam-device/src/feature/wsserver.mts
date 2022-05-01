@@ -1,6 +1,7 @@
 import WebSocket, { WebSocketServer } from "ws"
 import Debug from "debug"
 import chalk from "chalk"
+import { gpioProxyTag } from "../struct/conf.mjs"
 
 const debug = Debug("molloo:wsServer")
 
@@ -8,13 +9,11 @@ export class WSServer {
   protected port: number
   protected wss: WebSocket.Server | null = null
   protected webSockets: WebSocket[] = []
+  protected gpioSocket: WebSocket | null = null
   protected lastConnections = 0
   protected ledCallback: (state: boolean) => unknown = () => { }
   public constructor(port: number) {
     this.port = port
-  }
-  public setLedCallback(callback: (state: boolean) => unknown) {
-    this.ledCallback = callback
   }
   public async start() {
     const wss = new WebSocketServer({ port: this.port })
@@ -34,8 +33,30 @@ export class WSServer {
         if (strMsg.startsWith("{") && strMsg.endsWith("}")) {
           // json
           const obj = JSON.parse(strMsg)
-          // command?
+          // gpio Command
+          if (ws === this.gpioSocket) {
+            switch (obj.command) {
+              case "pressNegativeBtn":
+                this.sendCommandToAll("pressNegativeBtn")
+                break
+              case "pressPositiveBtn":
+                this.sendCommandToAll("pressPositiveBtn")
+                break
+              default:
+                debug(`Unknown command ${obj.command}`)
+            }
+          }
         } else {
+          if (strMsg === gpioProxyTag) {
+            // Proxy Socket
+            this.gpioSocket = ws
+            this.gpioSocket.once("close", () => {
+              this.gpioSocket = null
+            })
+            this.ledCallback = (state) => {
+              this.gpioSocket?.send(JSON.stringify({ command: state ? "turnOnLed" : "turnOffLed" }))
+            }
+          }
           ws.send(strMsg)
         }
       })

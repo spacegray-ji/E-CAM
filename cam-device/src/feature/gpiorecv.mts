@@ -1,25 +1,69 @@
 import { WSServer } from "./wsserver.mjs"
 import { Gpio } from "pigpio"
-import { blueBtnPin, redBtnPin } from "../struct/conf.mjs"
+import { blueBtnPin, camLedPin, gpioProxyTag, redBtnPin } from "../struct/conf.mjs"
 import Debug from "debug"
+import WebSocket from "ws"
 
 const debug = Debug("molloo:gpiorecv")
 
 export class GPIORecv {
   protected lastTimeMap: Map<number, number> = new Map()
   protected gpios: Map<number, Gpio> = new Map()
-  protected wsServer: WSServer
-  public constructor(wsServer: WSServer) {
-    this.wsServer = wsServer
+  protected sockAddr: string
+  protected isConnected = false
+  protected webSocket: WebSocket | null = null
+  public constructor(wsaddr: string) {
+    this.sockAddr = wsaddr
+  }
+  public async connect() {
+    const ws = await new Promise<WebSocket>((res, rej) => {
+      const timeout = setTimeout(() => rej("Timeout"), 5000)
+      const ws = new WebSocket(this.sockAddr)
+      const rejFn = (err: unknown) => {
+        rej(err)
+      }
+      ws.once("open", () => {
+        debug("Opened socket!")
+        ws.off("error", rejFn)
+        clearTimeout(timeout)
+        ws.send(gpioProxyTag)
+        res(ws)
+      })
+      ws.once("error", rejFn)
+    })
+    ws.on("message", (data) => {
+      let dataStr: string = ""
+      if (typeof data === "string") {
+        dataStr = data
+      } else {
+        // Buffer
+        dataStr = data.toString("utf8")
+      }
+      if (dataStr.startsWith("{") && dataStr.endsWith("}")) {
+        const obj = JSON.parse(dataStr)
+        // gpio Command
+        switch (obj.command) {
+          case "turnOnLed":
+            this.setBoolState(camLedPin, true)
+            break
+          case "turnOffLed":
+            this.setBoolState(camLedPin, false)
+            break
+          default:
+            debug(`Unknown command ${obj.command}`)
+        }
+      }
+    })
+    this.webSocket = ws
   }
   public register() {
     this.addOnPress(redBtnPin, () => {
       debug(`Red Button Pressed`)
-      this.wsServer.sendCommandToAll("pressNegativeBtn")
+      this.webSocket?.send("pressNegativeBtn")
     })
     this.addOnPress(blueBtnPin, () => {
       debug(`Blue Button Pressed`)
-      this.wsServer.sendCommandToAll("pressPositiveBtn")
+      this.webSocket?.send("pressPositiveBtn")
     })
   }
   /**

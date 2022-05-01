@@ -11,7 +11,8 @@
   "scripts": {
     "rimraf": "./node_modules/rimraf/bin.js",
     "clean": "rimraf build/",
-    "build": "npm run clean && tsc -p tsconfig.json"
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "start": "node build/main.mjs && sudo node build/main_gpio.mjs"
   },
   "engines": {
     "node": ">=16"

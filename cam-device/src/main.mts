@@ -52,19 +52,7 @@ async function main() {
 
   // Websocket Server
   const wsServer = new WSServer(wsPort)
-  wsServer.start()
-
-  // GPIO
-  if (myOS === OSType.LINUX) {
-    debug(`Starting GPIO Receiver`)
-    const gpioRecv = new GPIORecv(wsServer)
-    gpioRecv.register()
-    wsServer.setLedCallback((state) => {
-      gpioRecv.setBoolState(camLedPin, state)
-    })
-  } else {
-    debug(`GPIO - not supported OS!`)
-  }
+  await wsServer.start()
 
   // Socket.io client
   const sioClient = new SIOClient(tokenObj)

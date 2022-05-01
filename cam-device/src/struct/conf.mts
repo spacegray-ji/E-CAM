@@ -13,6 +13,8 @@ const mainServerHostname = "192.168.3.95"
 export const mainServerHost = `http://${mainServerHostname}:3200`
 export const mainSIOHost = `ws://${mainServerHostname}:3201`
 
+export const gpioProxyTag = `___###molloo:internal:gpio-proxy###___`
+
 export const cameraName = myOS === OSType.LINUX ? "v4l2:///dev/video0" : "VTubeStudioCam" // Whatever VTubeStudioCam
 
 export const githubURL = "https://github.com/craftingmod/molloo/blob/master/cam-device/README.md"
