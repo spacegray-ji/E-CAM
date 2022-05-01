@@ -139,11 +139,14 @@ const FullScreenImagePreview = styled.div<{ image: string | null }>`
 
 type PropType = {
   streamServer: string,
+  sCameraName: string,
 }
 
 export const getStaticProps:GetStaticProps = async (context) => {
+  const cameraName = (await (await fetch("/api/camera/primarydevice")).json()).name ?? ""
   const prop:PropType = {
     streamServer: `http://0.0.0.0:${streamingPort}`,
+    sCameraName: cameraName,
   }
   return {
     props: prop
@@ -324,6 +327,7 @@ const App = (props:PropType) => {
         <Camera
           ref={camera}
           streamServerUrl={streamServer}
+          cameraDeviceName={props.sCameraName}
           aspectRatio="cover"
           numberOfCamerasCallback={setNumberOfCameras}
           errorMessages={{

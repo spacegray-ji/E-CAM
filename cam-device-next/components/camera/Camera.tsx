@@ -153,10 +153,7 @@ export const Camera = React.forwardRef<unknown, CameraProps>(
               }
               try {
                 console.log("Camera Name: " + cName)
-                const rtccon = await webrtcStreamer.connect(cName, {
-                  width: 1920,
-                  height: 1080,
-                })
+                const rtccon = await webrtcStreamer.connect(cName)
                 window.addEventListener("beforeunload", () => {
                   webrtcStreamer.disconnect(rtccon);
                   (window as any)["webRTCStreamer"] = null
