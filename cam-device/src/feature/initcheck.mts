@@ -110,7 +110,7 @@ export async function checkStreamer() {
   } catch (err) {
     // set resolution
     if (myOS === OSType.LINUX) {
-      await exec(`v4l2-ctl -d /dev/video0 --set-fmt-video=width=${1920},height=${1080}`)
+      await exec(`v4l2-ctl -d /dev/video0 --set-fmt-video=width=${1600},height=${900}`)
       await exec(`v4l2-ctl -d /dev/video0 --set-parm=${24}`)
     }
 
