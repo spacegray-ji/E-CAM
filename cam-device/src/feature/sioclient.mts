@@ -107,8 +107,14 @@ export class SIOClient {
         ignoreDefaultArgs: ["--enable-automation"],
         defaultViewport: null,
       })
-      browser.on("disconnected", () => {
-        debug("Browser Disconnected")
+
+      const page = await browser.newPage()
+      await page.goto(`http://127.0.0.1:${nextjsPort}/preview?close&overlay`)
+      await page.exposeFunction("closePuppeteer", async () => {
+        debug("Close Puppeteer called")
+        await page.close()
+        await browser.close()
+
         this.runningBrowser = false
 
         // sleep screen if linux
@@ -119,14 +125,6 @@ export class SIOClient {
             debug("Exec Error: " + err)
           }
         }
-      })
-
-      const page = await browser.newPage()
-      await page.goto(`http://127.0.0.1:${nextjsPort}/preview?close&overlay`)
-      await page.exposeFunction("closePuppeteer", async () => {
-        debug("Close Puppeteer called")
-        await page.close()
-        await browser.close()
       })
     }
   }
