@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.MollooTeeth" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <style name="Theme.Molloo.Compat" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
@@ -13,6 +13,12 @@
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
+    <style name="Theme.Molloo.Intro" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+
+    </style>
+    <style name="ShapeAppearanceOverlay.App.CornerSize20dp" parent="">
+        <item name="cornerSize">20dp</item>
+    </style>
 
     <style name="Theme.Molloo.OneUI" parent="@style/OneUITheme">
 
@@ -22,5 +28,17 @@
         <item name="android:orientation">vertical</item>
         <item name="android:padding">20dp</item>
         <item name="android:background">@color/sesl_background_floating</item>
+    </style>
+
+    <style name="Theme.AppSplash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/color_splash_back</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <item name="windowSplashScreenAnimationDuration">500</item>
+        <item name="postSplashScreenTheme">@style/Theme.Molloo.OneUI</item>
+
+        <!-- Status bar and Nav bar configs -->
+        <item name="android:statusBarColor" tools:targetApi="l">@color/color_splash_back</item>
+        <item name="android:navigationBarColor">@color/color_splash_back</item>
+        <item name="android:windowLightStatusBar">@bool/isDarkMode</item>
     </style>
 </resources>

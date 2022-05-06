@@ -3,4 +3,12 @@
     <string name="sesl_font_family_regular" translatable="false">sans-serif</string>
     <!-- MainActivity -->
     <string name="hello_world">Hello World!</string>
+    <!-- AppIntroActivity -->
+    <string name="app_intro_act_title">Welcome to Molloo App</string>
+    <string name="intro_page1_title">Welcome!</string>
+    <string name="intro_page1_desc">Molloo is teeth management app.</string>
+    <string name="intro_page2_title">What it does?</string>
+    <string name="intro_page2_desc">Molloo detects cavity from you. You can get teeth management without many efforts.</string>
+    <string name="intro_page3_title">Let\'s get started!</string>
+    <string name="intro_page3_desc">Let\'s trying use it!</string>
 </resources>

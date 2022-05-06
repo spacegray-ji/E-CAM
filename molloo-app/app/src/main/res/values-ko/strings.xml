@@ -3,4 +3,12 @@
     <string name="app_name">몰루</string>
     <!-- MainActivity -->
     <string name="hello_world">안녕 세계!</string>
+    <!-- AppIntroActivity -->
+    <string name="app_intro_act_title">환영합니다</string>
+    <string name="intro_page1_title">안녕하세요!</string>
+    <string name="intro_page1_desc">새로운 사용자는 언제나 환영이에요.\n몰루 앱은 간단한 치아 진단 앱이에요.</string>
+    <string name="intro_page2_title">무엇을 하는 건가요?</string>
+    <string name="intro_page2_desc">몰루는 충치를 감지해 치아 관리를 도와줍니다.\n아마도요.....</string>
+    <string name="intro_page3_title">사용해 봅시다!</string>
+    <string name="intro_page3_desc">가즈아~</string>
 </resources>

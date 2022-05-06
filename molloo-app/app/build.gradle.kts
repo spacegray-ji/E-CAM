@@ -1,8 +1,7 @@
-import kotlin.reflect.full.memberProperties
-
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    kotlin("android")
+    kotlin("plugin.serialization") version Versions.kotlin
 }
 
 android {
@@ -42,16 +41,34 @@ dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     // Kotlin stdlib
     implementation(Libs.Kotlin.stdlib)
+    implementation(Libs.Kotlin.coroutines)
+    implementation(Libs.Kotlin.serialization_json)
+
     // AndroidX & Google
     implementation(Libs.AndroidX.core)
+
     implementation(Libs.AndroidX.appcompat)
     implementation(Libs.AndroidX.appcompat_res)
     implementation(Libs.AndroidX.constraintLayout)
     implementation(Libs.AndroidX.coordinatorLayout)
     implementation(Libs.AndroidX.splashScreen)
+
+    implementation(Libs.AndroidX.dataStore)
+    implementation(Libs.AndroidX.dataStore_pref)
+
+    implementation(Libs.AndroidX.lifecycle_runtime)
+    implementation(Libs.AndroidX.lifecycle_viewmodel)
+    implementation(Libs.AndroidX.lifecycle_livedata)
+    implementation(Libs.AndroidX.activity)
+
     implementation(Libs.google_material)
     // OneUI Design
     implementation(Libs.oneui_design)
+    // AppIntro
+    implementation(Libs.appIntro)
+    // Lottie (Animation)
+    implementation(Libs.lottie)
+    implementation("androidx.legacy:legacy-support-v4:1.0.0")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")

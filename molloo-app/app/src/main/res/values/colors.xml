@@ -5,6 +5,22 @@
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="black">@color/sesl_black</color>
+    <color name="white">@color/sesl_white</color>
+
+    <!-- Launcher Background Color -->
+    <color name="ic_launcher_background">#68CBC7</color>
+
+    <!-- Splash Colors -->
+    <color name="color_splash_icon">@color/black</color>
+    <color name="color_splash_back">@color/white</color>
+    <color name="color_animicon_back">@color/sesl_background_floating</color>
+    <!-- Intro Colors -->
+    <color name="appintro_title_color">@color/black</color>
+    <color name="appintro_desc_color">@color/black</color>
+    <color name="appintro_icon_tint">@color/black</color>
+    <color name="appintro_default_unselected_color">#555555</color>
+    <color name="appintro_default_selected_color">#111111</color>
+    <color name="appintro_navbar_color">@color/white</color>
+
 </resources>

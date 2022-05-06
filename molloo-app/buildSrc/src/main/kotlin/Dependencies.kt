@@ -8,14 +8,20 @@ object Versions {
         const val splashScreen = "1.0.0-beta02"
         const val coordinatorLayout = "1.2.0"
         const val constraintLayout = "2.1.3"
+        const val dataStore = "1.0.0"
+        const val lifecycle = "2.5.0-alpha06"
+        const val activity = "1.5.0-beta01"
     }
 
     object Kotlin {
-
+        const val coroutines = "1.3.9"
+        const val serialization_json = "1.3.2"
     }
 
     const val google_material = "1.6.0"
     const val oneui_design = "2.4.0"
+    const val appIntro = "6.2.0"
+    const val lottie = "5.0.3"
 
     const val junit = "4.12"
 }
@@ -28,14 +34,24 @@ object Libs {
         const val splashScreen = "androidx.core:core-splashscreen:${Versions.AndroidX.splashScreen}"
         const val coordinatorLayout = "androidx.coordinatorlayout:coordinatorlayout:${Versions.AndroidX.coordinatorLayout}"
         const val constraintLayout = "androidx.constraintlayout:constraintlayout:${Versions.AndroidX.constraintLayout}"
+        const val dataStore = "androidx.datastore:datastore:${Versions.AndroidX.dataStore}"
+        const val dataStore_pref = "androidx.datastore:datastore-preferences:${Versions.AndroidX.dataStore}"
+        const val lifecycle_viewmodel = "androidx.lifecycle:lifecycle-viewmodel-ktx:${Versions.AndroidX.lifecycle}"
+        const val lifecycle_livedata = "androidx.lifecycle:lifecycle-livedata-ktx:${Versions.AndroidX.lifecycle}"
+        const val lifecycle_runtime = "androidx.lifecycle:lifecycle-runtime-ktx:${Versions.AndroidX.lifecycle}"
+        const val activity = "androidx.activity:activity-ktx:${Versions.AndroidX.activity}"
     }
 
     object Kotlin {
         const val stdlib = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${Versions.kotlin}"
+        const val coroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Versions.Kotlin.coroutines}"
+        const val serialization_json = "org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.Kotlin.serialization_json}"
     }
 
     const val google_material = "com.google.android.material:material:${Versions.google_material}"
     const val oneui_design = "io.github.yanndroid:oneui:${Versions.oneui_design}"
+    const val appIntro = "com.github.AppIntro:AppIntro:${Versions.appIntro}"
+    const val lottie = "com.airbnb.android:lottie:${Versions.lottie}"
 }
 
 object TestLibs {

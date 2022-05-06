@@ -2,14 +2,14 @@
 
 buildscript {
     repositories {
+        // This is NOT repo for project!!
+        // Use settings.gradle.kts instead.
         google()
         mavenCentral()
-        gradlePluginPortal()
     }
-
     dependencies {
         classpath("com.android.tools.build:gradle:${Versions.gradle}")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.kotlin}")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.21")
     }
 }
 
