@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">몰루</string>
+    <!-- MainActivity -->
+    <string name="hello_world">안녕 세계!</string>
+</resources>

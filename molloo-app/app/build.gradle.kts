@@ -1,3 +1,5 @@
+import kotlin.reflect.full.memberProperties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -40,7 +42,7 @@ dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     // Kotlin stdlib
     implementation(Libs.Kotlin.stdlib)
-    // AndroidX
+    // AndroidX & Google
     implementation(Libs.AndroidX.core)
     implementation(Libs.AndroidX.appcompat)
     implementation(Libs.AndroidX.appcompat_res)
@@ -48,6 +50,8 @@ dependencies {
     implementation(Libs.AndroidX.coordinatorLayout)
     implementation(Libs.AndroidX.splashScreen)
     implementation(Libs.google_material)
+    // OneUI Design
+    implementation(Libs.oneui_design)
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")

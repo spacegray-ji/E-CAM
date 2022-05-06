@@ -15,6 +15,7 @@ object Versions {
     }
 
     const val google_material = "1.6.0"
+    const val oneui_design = "2.4.0"
 
     const val junit = "4.12"
 }
@@ -34,6 +35,7 @@ object Libs {
     }
 
     const val google_material = "com.google.android.material:material:${Versions.google_material}"
+    const val oneui_design = "io.github.yanndroid:oneui:${Versions.oneui_design}"
 }
 
 object TestLibs {
