@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Common -->
+    <color name="color_divider">#222222</color>
     <!-- Splash Colors -->
     <color name="color_splash_icon">@color/white</color>
     <color name="color_splash_back">@color/black</color>

@@ -5,8 +5,16 @@
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
+    <color name="color_divider">#FFE0E0E0</color>
+    <!-- Default -->
     <color name="black">@color/sesl_black</color>
     <color name="white">@color/sesl_white</color>
+    <color name="primary_color">#ff008577</color>
+    <color name="secondary_color">#ff009e7c</color>
+    <color name="primary_dark_color">#ff00574b</color>
+
+    <color name="sesl4_round_and_bgcolor">#f2f2f2</color>
+    <color name="sesl4_action_bar_background_color">#f2f2f2</color>
 
     <!-- Launcher Background Color -->
     <color name="ic_launcher_background">#68CBC7</color>
@@ -19,8 +27,8 @@
     <color name="appintro_title_color">@color/black</color>
     <color name="appintro_desc_color">@color/black</color>
     <color name="appintro_icon_tint">@color/black</color>
-    <color name="appintro_default_unselected_color">#555555</color>
-    <color name="appintro_default_selected_color">#111111</color>
+    <color name="appintro_default_unselected_color">#aaaaaa</color>
+    <color name="appintro_default_selected_color">#222222</color>
     <color name="appintro_navbar_color">@color/white</color>
 
 </resources>

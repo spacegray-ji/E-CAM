@@ -11,4 +11,8 @@
     <string name="intro_page2_desc">Molloo detects cavity from you. You can get teeth management without many efforts.</string>
     <string name="intro_page3_title">Let\'s get started!</string>
     <string name="intro_page3_desc">Let\'s trying use it!</string>
+    <!-- ActionFragment -->
+    <string name="capture_suggest_title">Capture</string>
+    <string name="capture_device_phone">Phone</string>
+    <string name="capture_device_cam">E-Cam</string>
 </resources>

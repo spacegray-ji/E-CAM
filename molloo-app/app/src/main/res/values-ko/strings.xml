@@ -11,4 +11,8 @@
     <string name="intro_page2_desc">몰루는 충치를 감지해 치아 관리를 도와줍니다.\n아마도요.....</string>
     <string name="intro_page3_title">사용해 봅시다!</string>
     <string name="intro_page3_desc">가즈아~</string>
+    <!-- ActionFragment -->
+    <string name="capture_suggest_title">촬영하기</string>
+    <string name="capture_device_phone">휴대폰</string>
+    <string name="capture_device_cam">몰루 카메라</string>
 </resources>

@@ -13,6 +13,7 @@
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
+    <!-- IntroActivity -->
     <style name="Theme.Molloo.Intro" parent="Theme.MaterialComponents.DayNight.NoActionBar">
 
     </style>
@@ -41,4 +42,7 @@
         <item name="android:navigationBarColor">@color/color_splash_back</item>
         <item name="android:windowLightStatusBar">@bool/isDarkMode</item>
     </style>
+
+    <!-- ActionFragment -->
+
 </resources>
