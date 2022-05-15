@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Molloo.Compat" parent="Theme.Material3.DynamicColors.DayNight">
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+    <style name="Theme.Molloo.Intro" parent="Theme.Material3.DynamicColors.DayNight">
+
+    </style>
+
+    <style name="Theme.AppSplash" parent="Theme.Material3.DynamicColors.DayNight">
+
+    </style>
+</resources>

@@ -3,6 +3,11 @@
     <string name="sesl_font_family_regular" translatable="false">sans-serif</string>
     <!-- MainActivity -->
     <string name="hello_world">Hello World!</string>
+    <string name="title_maincompose" translatable="false">@string/app_name</string>
+    <string name="dialog_noresp_title">No response from server</string>
+    <string name="dialog_noresp_message">The server did not respond. Please try again later.</string>
+    <string name="dialog_unknownresp_title">Unexpected Response</string>
+    <string name="dialog_unknownresp_message">The server responded unexpected data. Please try again later.</string>
     <!-- AppIntroActivity -->
     <string name="app_intro_act_title">Welcome to Molloo App</string>
     <string name="intro_page1_title">Welcome!</string>
@@ -15,4 +20,32 @@
     <string name="capture_suggest_title">Capture</string>
     <string name="capture_device_phone">Phone</string>
     <string name="capture_device_cam">E-Cam</string>
+    <!-- MainCompose -->
+    <string name="username_default">User</string>
+    <string name="username_change">Change User</string>
+    <string name="add_cam_device_title">Add cam device</string>
+    <string name="add_cam_device_desc">Please add cam device via clicking this card.</string>
+    <string name="dialog_add_user_title">Add User</string>
+    <string name="dialog_add_user_desc">Please input username to add.</string>
+    <string name="dialog_add_user_hint">Username</string>
+    <string name="dialog_add_cam_title">Set E-Cam Device</string>
+    <string name="dialog_add_cam_desc">Please input E-Cam\'s serial.</string>
+    <string name="dialog_add_cam_hint">Serial of E-Cam</string>
+    <string name="dialog_sel_user_title">Select User</string>
+    <string name="card_ecam_connected">E-Cam is connected</string>
+    <string name="card_ecam_serial">Serial: %s</string>
+    <string name="card_ecam_suggestcapture">Now you can check your teeth with capture button. Please look under button.</string>
+    <string name="card_ecam_capture_title">Capture with E-CAM</string>
+    <string name="card_ecam_capture_desc">Hold E-CAM\'s camera and press this button to start.</string>
+    <string name="toast_ecam_request_success">Success! Check E-CAM screen to future progression!</string>
+    <string name="toast_ecam_request_fail">Something went wrong! Please try again at later.</string>
+
+
+
+
+    <!-- Generic -->
+    <string name="add">Add</string>
+    <string name="set">Set</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
 </resources>

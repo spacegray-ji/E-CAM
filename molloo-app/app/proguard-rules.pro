@@ -20,7 +20,9 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
+# ========================================
 # Kotlin Serialization
+# ========================================
 
 # Keep `Companion` object fields of serializable classes.
 # This avoids serializer lookup through `getDeclaredClasses` as done for named companion objects.
@@ -61,3 +63,11 @@
 #-keepnames class <1>$$serializer { # -keepnames suffices; class is kept when serializer() is kept.
 #    static <1>$$serializer INSTANCE;
 #}
+
+# ===================================
+# One UI Design Library (de.dlyt.yanndroid.oneui)
+# ===================================
+
+-keep class de.dlyt.yanndroid.oneui.** { *; }
+-keep class androidx.appcompat.widget.Sesl** { *; }
+-keep class android.view.WindowInsetsController { *; }

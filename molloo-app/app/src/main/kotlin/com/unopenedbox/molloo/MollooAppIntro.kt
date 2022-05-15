@@ -23,6 +23,9 @@ import com.github.appintro.AppIntroCustomLayoutFragment
 import com.github.appintro.AppIntroFragment
 import com.github.appintro.AppIntroPageTransformerType
 import com.unopenedbox.molloo.fragment.AppIntroAnimFragment
+import com.unopenedbox.molloo.store.PropStore
+import com.unopenedbox.molloo.store.prefStore
+import com.unopenedbox.molloo.ui.compose.MainCompose
 import kotlinx.coroutines.launch
 
 class MollooAppIntro : AppIntro() {
@@ -31,26 +34,33 @@ class MollooAppIntro : AppIntro() {
 
         // Cutout support
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            window.attributes.layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
 
-        addSlide(AppIntroAnimFragment.newInstance(
-            title = R.string.intro_page1_title,
-            desc = R.string.intro_page1_desc,
-            animIconRes = R.raw.wave,
-        ))
+        addSlide(
+            AppIntroAnimFragment.newInstance(
+                title = R.string.intro_page1_title,
+                desc = R.string.intro_page1_desc,
+                animIconRes = R.raw.wave,
+            )
+        )
 
-        addSlide(AppIntroAnimFragment.newInstance(
-            title = R.string.intro_page2_title,
-            desc = R.string.intro_page2_desc,
-            staticIconRes = R.drawable.ic_cavity,
-        ))
+        addSlide(
+            AppIntroAnimFragment.newInstance(
+                title = R.string.intro_page2_title,
+                desc = R.string.intro_page2_desc,
+                staticIconRes = R.drawable.ic_cavity,
+            )
+        )
 
-        addSlide(AppIntroAnimFragment.newInstance(
-            title = R.string.intro_page3_title,
-            desc = R.string.intro_page3_desc,
-            animIconRes = R.raw.medicine,
-        ))
+        addSlide(
+            AppIntroAnimFragment.newInstance(
+                title = R.string.intro_page3_title,
+                desc = R.string.intro_page3_desc,
+                animIconRes = R.raw.medicine,
+            )
+        )
     }
 
     override fun onSkipPressed(currentFragment: Fragment?) {
@@ -67,9 +77,9 @@ class MollooAppIntro : AppIntro() {
 
     private fun requestComplete() {
         lifecycleScope.launch {
-            val settingStore = AppStore(this@MollooAppIntro)
+            val settingStore = PropStore(prefStore)
             settingStore.setFirstUse(false)
-            startActivity(Intent(this@MollooAppIntro, MainActivity::class.java))
+            startActivity(Intent(this@MollooAppIntro, MainCompose::class.java))
             finish()
         }
     }

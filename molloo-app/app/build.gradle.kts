@@ -1,3 +1,5 @@
+import kotlin.reflect.full.memberProperties
+
 plugins {
     id("com.android.application")
     kotlin("android")
@@ -17,6 +19,29 @@ android {
         setProperty("archivesBaseName", "$applicationId-v$versionName($versionCode)")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary = true
+        }
+    }
+
+    buildFeatures {
+        compose = true
+        dataBinding = true
+        viewBinding = true
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+        freeCompilerArgs = listOf(
+            "-P",
+            "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true",
+            "-opt-in=kotlin.RequiresOptIn"
+        )
     }
 
     buildTypes {
@@ -35,32 +60,32 @@ android {
             )
         }
     }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = Versions.AndroidX.compose
+    }
+
+    namespace = "com.unopenedbox.molloo"
+    packagingOptions {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
 }
 
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
     // Kotlin stdlib
-    implementation(Libs.Kotlin.stdlib)
-    implementation(Libs.Kotlin.coroutines)
-    implementation(Libs.Kotlin.serialization_json)
-
+    Libs.Kotlin::class.memberProperties.forEach {
+        implementation(it.getter.call() as String)
+    }
     // AndroidX & Google
-    implementation(Libs.AndroidX.core)
-
-    implementation(Libs.AndroidX.appcompat)
-    implementation(Libs.AndroidX.appcompat_res)
-    implementation(Libs.AndroidX.constraintLayout)
-    implementation(Libs.AndroidX.coordinatorLayout)
-    implementation(Libs.AndroidX.splashScreen)
-
-    implementation(Libs.AndroidX.dataStore)
-    implementation(Libs.AndroidX.dataStore_pref)
-
-    implementation(Libs.AndroidX.lifecycle_runtime)
-    implementation(Libs.AndroidX.lifecycle_viewmodel)
-    implementation(Libs.AndroidX.lifecycle_livedata)
-    implementation(Libs.AndroidX.activity)
-
+    Libs.AndroidX::class.memberProperties.forEach {
+        implementation(it.getter.call() as String)
+    }
+    Libs.AndroidX_Compose::class.memberProperties.forEach {
+        implementation(it.getter.call() as String)
+    }
     implementation(Libs.google_material)
     // OneUI Design
     implementation(Libs.oneui_design)
@@ -68,9 +93,19 @@ dependencies {
     implementation(Libs.appIntro)
     // Lottie (Animation)
     implementation(Libs.lottie)
-    implementation("androidx.legacy:legacy-support-v4:1.0.0")
+    // Fuel
+    Libs.Fuel::class.memberProperties.forEach {
+        implementation(it.getter.call() as String)
+    }
+    // Material-Dialog
+    Libs.MaterialDialog::class.memberProperties.forEach {
+        implementation(it.getter.call() as String)
+    }
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:${Versions.AndroidX.compose}")
+    debugImplementation("androidx.compose.ui:ui-tooling:${Versions.AndroidX.compose}")
+    debugImplementation("androidx.compose.ui:ui-test-manifest:${Versions.AndroidX.compose}")
 }

@@ -9,8 +9,12 @@ object Versions {
         const val coordinatorLayout = "1.2.0"
         const val constraintLayout = "2.1.3"
         const val dataStore = "1.0.0"
-        const val lifecycle = "2.5.0-alpha06"
+        const val lifecycle = "2.5.0-beta01"
         const val activity = "1.5.0-beta01"
+        const val fragment = "1.4.1"
+        const val compose_material3 = "1.0.0-alpha10"
+        const val compose = "1.2.0-alpha08"
+        const val navigation = "2.5.0-beta01"
     }
 
     object Kotlin {
@@ -22,6 +26,8 @@ object Versions {
     const val oneui_design = "2.4.0"
     const val appIntro = "6.2.0"
     const val lottie = "5.0.3"
+    const val fuel = "2.3.1"
+    const val material_dialog = "3.3.0"
 
     const val junit = "4.12"
 }
@@ -39,7 +45,22 @@ object Libs {
         const val lifecycle_viewmodel = "androidx.lifecycle:lifecycle-viewmodel-ktx:${Versions.AndroidX.lifecycle}"
         const val lifecycle_livedata = "androidx.lifecycle:lifecycle-livedata-ktx:${Versions.AndroidX.lifecycle}"
         const val lifecycle_runtime = "androidx.lifecycle:lifecycle-runtime-ktx:${Versions.AndroidX.lifecycle}"
+        const val lifecycle_compose = "androidx.lifecycle:lifecycle-viewmodel-compose:${Versions.AndroidX.lifecycle}"
         const val activity = "androidx.activity:activity-ktx:${Versions.AndroidX.activity}"
+        const val fragment = "androidx.fragment:fragment-ktx:${Versions.AndroidX.fragment}"
+        const val navigation_fragment = "androidx.navigation:navigation-fragment-ktx:${Versions.AndroidX.navigation}"
+        const val navigation_ui = "androidx.navigation:navigation-ui-ktx:${Versions.AndroidX.navigation}"
+    }
+    object AndroidX_Compose {
+        const val activity = "androidx.activity:activity-compose:${Versions.AndroidX.activity}"
+        const val material = "androidx.compose.material3:material3:${Versions.AndroidX.compose_material3}"
+        const val material_icons = "androidx.compose.material:material-icons-core:${Versions.AndroidX.compose}"
+        const val material_icons_ext = "androidx.compose.material:material-icons-extended:${Versions.AndroidX.compose}"
+        const val ui = "androidx.compose.ui:ui:${Versions.AndroidX.compose}"
+        const val livedata = "androidx.compose.runtime:runtime-livedata:${Versions.AndroidX.compose}"
+        const val ui_tooling = "androidx.compose.ui:ui-tooling:${Versions.AndroidX.compose}"
+        const val ui_tooling_preview = "androidx.compose.ui:ui-tooling-preview:${Versions.AndroidX.compose}"
+        const val foundation = "androidx.compose.foundation:foundation:${Versions.AndroidX.compose}"
     }
 
     object Kotlin {
@@ -52,6 +73,20 @@ object Libs {
     const val oneui_design = "io.github.yanndroid:oneui:${Versions.oneui_design}"
     const val appIntro = "com.github.AppIntro:AppIntro:${Versions.appIntro}"
     const val lottie = "com.airbnb.android:lottie:${Versions.lottie}"
+
+    object Fuel {
+        const val core = "com.github.kittinunf.fuel:fuel:${Versions.fuel}"
+        const val android = "com.github.kittinunf.fuel:fuel-android:${Versions.fuel}"
+        const val coroutines = "com.github.kittinunf.fuel:fuel-coroutines:${Versions.fuel}"
+        const val serialization = "com.github.kittinunf.fuel:fuel-kotlinx-serialization:${Versions.fuel}"
+        const val livedata = "com.github.kittinunf.fuel:fuel-livedata:${Versions.fuel}"
+    }
+
+    object MaterialDialog {
+        const val core = "com.afollestad.material-dialogs:core:${Versions.material_dialog}"
+        const val input = "com.afollestad.material-dialogs:input:${Versions.material_dialog}"
+        const val lifecycle = "com.afollestad.material-dialogs:lifecycle:${Versions.material_dialog}"
+    }
 }
 
 object TestLibs {
