@@ -55,5 +55,18 @@ export async function connectDB(host: string, pagename: string, dbname: string) 
   return _dbase
 }
 
+export function getQueryParam(param: unknown | unknown[] | undefined, dfValue: string = "") {
+  if (param == null) {
+    return dfValue
+  }
+  if (Array.isArray(param)) {
+    return dfValue
+  }
+  if (typeof param === "string") {
+    return param
+  }
+  return dfValue
+}
+
 export const oneDay = 1000 * 60 * 60 * 24
 export const oneMiB = 1024 * 1024

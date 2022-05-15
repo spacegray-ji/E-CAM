@@ -8,7 +8,7 @@ import http from "http"
 import { MongoClient, Db } from "mongodb"
 import fsp from "fs/promises"
 import fs from "fs"
-import { simpleResponse, responseError, responseJSON, oneDay, connectDB, asArray, asArraySafe, oneMiB } from "./util"
+import { simpleResponse, responseError, responseJSON, oneDay, connectDB, asArray, asArraySafe, oneMiB, getQueryParam } from "./util"
 import { GeneralResponse, Status } from "./general-resp"
 import short from "short-uuid"
 import { UserInfo } from "./structure/user-info"
@@ -90,6 +90,7 @@ let lastIDTime = -1
  * @param db 데이터베이스
  */
 async function registerToken(exp: Express, db: Db) {
+  const photoDB = db.collection("photos")
   /**
    * Create token by serial
    */
@@ -129,6 +130,22 @@ async function registerToken(exp: Express, db: Db) {
       cameraTokens.set(token, serial)
     }
     responseJSON(res, Status.OK, "Token created.", { token })
+  })
+  exp.get("/serial", async (req, res) => {
+    const isCam = getQueryParam(req.query.isCamera, "false") === "true"
+    let maxTries = 3
+    while (--maxTries >= 0) {
+      const serial = `${isCam ? "CAM" : "APP"}${short.generate()}`
+      // Get photo?
+      const images_by_serial = await photoDB.find({ serial }).limit(1).toArray()
+      if (images_by_serial.length <= 0) {
+        responseJSON(res, Status.OK, "Serial created.", { serial })
+        break
+      }
+    }
+    if (maxTries < 0) {
+      responseError(res, Status.INTERNAL_SERVER_ERROR, "Failed to create serial.")
+    }
   })
   exp.get("/verifytoken", async (req, res) => {
     const token = req.query.token ?? ""
@@ -418,6 +435,16 @@ async function registerDebug(exp: Express, db: Db) {
   })
 }
 
+async function registerAlive(exp: Express, db: Db) {
+  exp.get("/status", async (req, res) => {
+    responseJSON(res, Status.OK, "Server is ok.", {
+      alive: true,
+      main: "1.0.0",
+      app: "1.0.0",
+    })
+  })
+}
+
 
 async function init() {
   // cleanup
@@ -455,6 +482,7 @@ async function init() {
   registerDebug(app, db)
   registerToken(app, db)
   registerPhoto(app, db)
+  registerAlive(app, db)
   const server = http.createServer(app)
   server.listen(app.get("port"), () => {
     console.log(`Express server listening on port ${app.get("port")}`)
