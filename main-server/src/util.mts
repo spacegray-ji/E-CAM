@@ -1,5 +1,5 @@
 import express, { Express, Response, Request } from "express"
-import { GeneralResponse, Status } from "./general-resp"
+import { GeneralResponse, Status } from "./general-resp.mjs"
 import { MongoClient, Db } from "mongodb"
 
 export function simpleResponse(res: express.Response, status: number, message: string) {

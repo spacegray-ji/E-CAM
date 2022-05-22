@@ -1,4 +1,4 @@
-import { UserInfo } from "./user-info"
+import { UserInfo } from "./user-info.mjs"
 import { ObjectId } from "mongodb"
 
 export interface BasicPhotoInfo {
