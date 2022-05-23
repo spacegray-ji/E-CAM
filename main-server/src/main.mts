@@ -5,7 +5,7 @@
 import express, { Express } from "express"
 import fileUpload from "express-fileupload"
 import http from "http"
-import { MongoClient, Db } from "mongodb"
+import { MongoClient, Db, Filter, Document } from "mongodb"
 import fsp from "fs/promises"
 import fs from "fs"
 import { simpleResponse, responseError, responseJSON, oneDay, connectDB, asArray, asArraySafe, oneMiB, getQueryParam } from "./util.mjs"
@@ -21,6 +21,10 @@ import { modelServer } from "./config.mjs"
 import SocketIO, { Server } from "socket.io"
 import EventEmitter from "events"
 import sharp from "sharp"
+import Debug from "debug"
+import e from "express"
+
+const debug = Debug("molloo:main_server")
 
 /**
  * Express 생성
@@ -92,19 +96,20 @@ let lastIDTime = -1
 async function registerToken(exp: Express, db: Db) {
   const photoDB = db.collection("photos")
   /**
-   * Create token by serial
+   * 시리얼로 토큰 생성
    */
   exp.put("/token", async (req, res) => {
-    // paramter check
-    const { serial, username, isCamera } = parseBody(req.body, {
-      serial: "",
-      username: "Default",
-      isCamera: false,
-    })
+    // 파라메터 가져오기
+    const serial = getQueryParam<string>(req.body.serial, "")
+    const username = getQueryParam<string>(req.body.username, "Default")
+    const isCamera = getQueryParam<boolean>(req.body.isCamera, false)
+
+    // 무결성 검사
     if (serial.length <= 0 || username.length <= 0 || serial.length > 32 || username.length > 32) {
-      responseError(res, Status.INVALID_PARAMETER, "Invalid parameter.", { token: "" })
+      responseError(res, Status.BAD_REQUEST, "Invalid parameter.", { token: "" })
       return
     }
+    // 토큰 생성
     const token = short.generate()
     if (!isCamera) {
       for (const [key, value] of userTokens) {
@@ -129,16 +134,26 @@ async function registerToken(exp: Express, db: Db) {
       }
       cameraTokens.set(token, serial)
     }
+    // 응답
+    logREST("PUT", "/token", `Token created: ${chalk.yellow(serial)} -> ${chalk.yellow(token)}`)
     responseJSON(res, Status.OK, "Token created.", { token })
   })
+  /**
+   * 시리얼 생성
+   * 
+   * GET /serial
+   */
   exp.get("/serial", async (req, res) => {
-    const isCam = getQueryParam(req.query.isCamera, "false") === "true"
+    // 파라메터
+    const isCam = getQueryParam<boolean>(req.query.isCamera, false)
+
     let maxTries = 3
     while (--maxTries >= 0) {
       const serial = `${isCam ? "CAM" : "APP"}${short.generate()}`
       // Get photo?
       const images_by_serial = await photoDB.find({ serial }).limit(1).toArray()
       if (images_by_serial.length <= 0) {
+        logREST("GET", "/serial", `Serial created: ${serial}`)
         responseJSON(res, Status.OK, "Serial created.", { serial })
         break
       }
@@ -148,24 +163,29 @@ async function registerToken(exp: Express, db: Db) {
     }
   })
   exp.get("/verifytoken", async (req, res) => {
-    const token = req.query.token ?? ""
+    // 파라메터
+    const token = getQueryParam<string>(req.query.token, "")
     const result = {
       valid: false,
       type: "",
       serial: "",
+      username: "",
     }
-    if (typeof token !== "string") {
-      responseError(res, Status.INVALID_PARAMETER, "Invalid parameter.", result)
+    if (token.length <= 0) {
+      responseError(res, Status.BAD_REQUEST, "Invalid parameter.", result)
       return
     }
     const user = verifyUserToken(token)
     const camera = verifyCameraToken(token)
     if (user == null && camera == null) {
+      logREST("GET", "/verifytoken", `${chalk.yellow(token)} is invalid!`)
       responseJSON(res, Status.OK, "[TOKEN_NOT_FOUND] Token is invalid", result)
     } else {
+      logREST("GET", "/verifytoken", `${chalk.yellow(token)} is valid! Serial: ${chalk.yellow(user?.serial ?? camera ?? "")}`)
       result.valid = true
       result.type = user != null ? "user" : "camera"
-      result.serial = user != null ? user.serial : (camera as string)
+      result.serial = user?.serial ?? (camera as string)
+      result.username = user?.username ?? ""
       responseJSON(res, Status.OK, "Token is valid", result)
     }
   })
@@ -177,27 +197,26 @@ async function registerPhoto(exp: Express, db: Db) {
   app.use("/photo/static/", express.static("./photos"))
   exp.put("/photo", async (req, res) => {
     // paramter check
-    const { token } = parseBody(req.body, {
-      token: ""
-    })
+    const token = getQueryParam<string>(req.body.token, "")
+
     const cameraSerial = verifyCameraToken(token)
     if (cameraSerial == null) {
-      responseError(res, Status.NOT_FOUND, "[TOKEN_NOT_FOUND] Invalid token.")
+      responseError(res, Status.UNAUTHORIZED, "[TOKEN_NOT_FOUND] Invalid token.")
       return
     }
     const user = queryUserBySerial(cameraSerial)
     if (user == null) {
-      responseError(res, Status.NOT_FOUND, "No user assigned.")
+      responseError(res, Status.UNAUTHORIZED, "No user assigned.")
       return
     }
     const photos = asArraySafe(req.files?.photo)
     if (photos == null) {
-      responseError(res, Status.INVALID_PARAMETER, "No photo was provided.")
+      responseError(res, Status.BAD_REQUEST, "No photo was provided.")
       return
     }
     // check file size
     if (photos.length >= 10) {
-      responseError(res, Status.INVALID_PARAMETER, "Too many photos.")
+      responseError(res, Status.FORBIDDEN, "Too many photos.")
       return
     }
     // check fields
@@ -205,7 +224,7 @@ async function registerPhoto(exp: Express, db: Db) {
     for (const photo of photos) {
       // check size
       if (photo.size >= 10 * oneMiB) {
-        responseError(res, Status.INVALID_PARAMETER, "Photo is too large.")
+        responseError(res, Status.FORBIDDEN, "Photo is too large.")
         return
       }
       try {
@@ -230,7 +249,7 @@ async function registerPhoto(exp: Express, db: Db) {
         basicPhotos.push(pInfo)
       } catch (err) {
         console.error(err)
-        responseError(res, Status.INVALID_PARAMETER, `${photo.name} Image isn't supported.`)
+        responseError(res, Status.BAD_REQUEST, `${photo.name} Image isn't supported.`)
         return
       }
       // await photoDB.insertOne(pInfo)
@@ -246,7 +265,7 @@ async function registerPhoto(exp: Express, db: Db) {
         body: photoForm
       }).json() as PhotoModelRes
       if (modelRes.error) {
-        responseError(res, Status.INVALID_PARAMETER, "Wrong uploaded file.")
+        responseError(res, Status.INTERNAL_SERVER_ERROR, "Wrong uploaded file.")
         return
       }
       // map photo info
@@ -280,45 +299,162 @@ async function registerPhoto(exp: Express, db: Db) {
       responseError(res, Status.INTERNAL_SERVER_ERROR, "Internal Server Error. (Model server)")
     }
   })
+  /**
+   * GET `/photo` : 사진을 가져옴
+   * @query `token` 사용자 인증 토큰
+   */
   exp.get("/photo", async (req, res) => {
-    const token = req.query.token ?? ""
-    const maxCount: number = safeNumber(req.query.count as unknown, 10)
+    const log = (str: string) => {
+      logREST("GET", "/photo", str)
+    }
+    // 파라메터
+    const token = getQueryParam<string>(req.query.token, "")
+    let maxCount = Math.round(getQueryParam<number>(req.query.maxCount, 10))
+    maxCount = Math.max(1, Math.min(maxCount, 100))
+    const beforeId = getQueryParam<string>(req.query.beforeId, "")
+    const afterId = getQueryParam<string>(req.query.afterId, "")
+    const includeTarget = getQueryParam<boolean>(req.query.includeTarget, false)
+    let page = Math.round(getQueryParam<number>(req.query.page, 1))
+    page = Math.max(1, page)
+
+    log(`[${chalk.blueBright("Param")}] token: ${chalk.yellow(token)}, count: ${chalk.yellow(maxCount.toString())}, beforeId: ${chalk.yellow(beforeId)}, afterId: ${chalk.yellow(afterId)}, page: ${chalk.yellow(page.toString())}`)
+
     const result = {
       dirpath: "/photo/static/",
       photos: [] as PhotoInfo[],
     }
-    if (typeof token !== "string") {
-      responseError(res, Status.INVALID_PARAMETER, "Invalid parameter.", result)
+    if (token.length <= 0) {
+      responseError(res, Status.BAD_REQUEST, "Invalid parameter.", result)
       return
     }
     const user = verifyUserToken(token)
     if (user == null) {
-      responseError(res, Status.NOT_FOUND, "[TOKEN_NOT_FOUND] No user assigned.", result)
+      responseError(res, Status.UNAUTHORIZED, "[TOKEN_NOT_FOUND] No user assigned.", result)
       return
     }
-    const photos = await photoDB.find({ user }).limit(maxCount).toArray()
-    result.photos.push(...removeDBInfoFromPhoto(photos as any as DBPhotoInfo[]))
-    responseJSON(res, Status.OK, "Photo list.", result)
+    logREST("GET", "/photo", `Photo requested. User: ${chalk.yellow(user.serial)}`)
+    let query: Record<string, unknown>[] = []
+    if (beforeId.length > 0) {
+      const beforeTarget = await photoDB.findOne({ user, id: beforeId })
+      if (beforeTarget == null) {
+        // if photo isn't found, response error
+        responseError(res, Status.FORBIDDEN, `${beforeId} photo not found.`, result)
+        return
+      } else {
+        let dbQuery: Filter<Document> = { user }
+        if (includeTarget) {
+          dbQuery = {
+            ...dbQuery,
+            createdAt: {
+              $lt: beforeTarget.createdAt
+            }
+          }
+        } else {
+          dbQuery = {
+            ...dbQuery,
+            createdAt: {
+              $lt: beforeTarget.createdAt
+            }
+          }
+        }
+        query = await photoDB.find(dbQuery).sort({ createdAt: -1 }).limit(maxCount).toArray()
+      }
+    } else if (afterId.length > 0) {
+      const afterTarget = await photoDB.findOne({ user, id: afterId })
+      if (afterTarget == null) {
+        // if photo isn't found, response error
+        responseError(res, Status.FORBIDDEN, `${afterId} photo not found.`, result)
+        return
+      } else {
+        let dbQuery: Filter<Document> = { user }
+        if (includeTarget) {
+          dbQuery = {
+            ...dbQuery,
+            createdAt: { $gte: afterTarget.createdAt }
+          }
+        } else {
+          dbQuery = {
+            ...dbQuery,
+            createdAt: { $gt: afterTarget.createdAt }
+          }
+        }
+        query = await photoDB.find(dbQuery).sort({ createdAt: -1 }).limit(maxCount).toArray()
+      }
+    } else if (page > 1) {
+      query = await photoDB.find({ user }).sort({ createdAt: -1 }).skip((page - 1) * maxCount).limit(maxCount).toArray()
+    } else {
+      // No Page
+      query = await photoDB.find({ user }).sort({ createdAt: -1 }).limit(maxCount).toArray()
+      /*
+      result.photos = removeDBInfoFromPhoto(photos)
+      responseJSON(res, Status.OK, "Photo requested.", result)
+      return*/
+    }
+    const photos: PhotoInfo[] = query.map((v) => ({
+      id: v.id ?? "0",
+      filename: v.filename ?? "",
+      createdAt: v.createdAt ?? new Date(0),
+      pixelSize: v.pixelSize ?? 0,
+      cavityLevel: v.cavityLevel ?? -1,
+    } as PhotoInfo))
+    result.photos = photos
+    responseJSON(res, Status.OK, `Photo list of ${token}`, result)
+  })
+  exp.delete("/photo", async (req, res) => {
+    const log = (str: string) => {
+      logREST("DELETE", "/photo", str)
+    }
+    const token = getQueryParam<string>(req.body.token, "")
+    const photoId = getQueryParam<string>(req.body.photoId, "")
+
+    log(`[${chalk.blueBright("Param")}] token: ${chalk.yellow(token)}, photoId: ${chalk.yellow(photoId)}`)
+
+    if (token.length <= 0 || photoId.length <= 0) {
+      responseError(res, Status.BAD_REQUEST, "Invalid parameter.", {})
+      return
+    }
+    // check user
+    const user = verifyUserToken(token)
+    if (user == null) {
+      responseError(res, Status.UNAUTHORIZED, "[TOKEN_NOT_FOUND] No user assigned.", {})
+      return
+    }
+    // check photo
+    const photo = await photoDB.findOne({ user, id: photoId })
+    if (photo == null) {
+      responseError(res, Status.FORBIDDEN, `${photoId} photo not found.`, {})
+      return
+    }
+    // delete photo
+    const deletedPhoto = await photoDB.deleteOne({ user, id: photoId })
+    if (deletedPhoto.deletedCount <= 0) {
+      responseError(res, Status.INTERNAL_SERVER_ERROR, `Internal Server Error`, {})
+      return
+    } else {
+      // delete photo file
+      const fileName = (photo as unknown as DBPhotoInfo).filename
+      try {
+        await fsp.rm(`./photos/${fileName}`)
+      } catch (err) {
+        console.error(err)
+      }
+      responseJSON(res, Status.OK, `Photo ${photoId} deleted.`, {})
+    }
   })
   exp.post("/photo/request", async (req, res) => {
-    const token = req.body.token ?? ""
+    const token = getQueryParam<string>(req.query.token, "")
     const result = {
-
     }
 
-    if (typeof token !== "string") {
-      responseError(res, Status.INVALID_PARAMETER, "Invalid parameter.", result)
-      return
-    }
     const user = verifyUserToken(token)
     if (user == null) {
-      responseError(res, Status.NOT_FOUND, "[TOKEN_NOT_FOUND] No user assigned.", result)
+      responseError(res, Status.UNAUTHORIZED, "[TOKEN_NOT_FOUND] No user assigned.", result)
       return
     }
 
     const cameraSocket = getCameraSocket(user.serial)
     if (cameraSocket == null) {
-      responseError(res, Status.NOT_FOUND, "No camera assigned.", result)
+      responseError(res, Status.FORBIDDEN, "No camera assigned.", result)
       return
     }
 
@@ -331,25 +467,21 @@ async function registerPhoto(exp: Express, db: Db) {
     }
   })
   exp.get("/photo/take", async (req, res) => {
-    const token = req.query.token ?? ""
+    const token = getQueryParam<string>(req.query.token, "")
     const result = {
       dirpath: "/photo/static/",
       photos: [] as PhotoInfo[],
     }
 
-    if (typeof token !== "string") {
-      responseError(res, Status.INVALID_PARAMETER, "Invalid parameter.", result)
-      return
-    }
     const user = verifyUserToken(token)
     if (user == null) {
-      responseError(res, Status.NOT_FOUND, "[TOKEN_NOT_FOUND] No user assigned.", result)
+      responseError(res, Status.UNAUTHORIZED, "[TOKEN_NOT_FOUND] No user assigned.", result)
       return
     }
 
     const cameraSocket = getCameraSocket(user.serial)
     if (cameraSocket == null) {
-      responseError(res, Status.NOT_FOUND, "No camera assigned.", result)
+      responseError(res, Status.FORBIDDEN, "No camera assigned.", result)
       return
     }
 
@@ -383,7 +515,7 @@ async function registerDebug(exp: Express, db: Db) {
   const photoDB = db.collection("photos")
   exp.delete("/debug/photo", async (req, res) => {
     if (req.body == null) {
-      responseError(res, Status.INVALID_PARAMETER, "No body received.")
+      responseError(res, Status.BAD_REQUEST, "No body received.")
       return
     }
 
@@ -396,12 +528,12 @@ async function registerDebug(exp: Express, db: Db) {
       }
       responseJSON(res, Status.OK, "Photo deleted.", {})
     } else {
-      responseJSON(res, Status.INVALID_REQUEST, "Access denied.", {})
+      responseJSON(res, Status.UNAUTHORIZED, "Access denied.", {})
     }
   })
   exp.post("/debug/photo/model", async (req, res) => {
     if (req.body == null) {
-      responseError(res, Status.INVALID_PARAMETER, "No body received.")
+      responseError(res, Status.BAD_REQUEST, "No body received.")
       return
     }
 
@@ -409,7 +541,7 @@ async function registerDebug(exp: Express, db: Db) {
     if (authKey != null && debugKey == authKey) {
       const photos = asArraySafe(req.files?.photo)
       if (photos == null) {
-        responseError(res, Status.INVALID_PARAMETER, "No photo was provided.")
+        responseError(res, Status.FORBIDDEN, "No photo was provided.")
         return
       }
       const photoList: string[] = []
@@ -430,7 +562,7 @@ async function registerDebug(exp: Express, db: Db) {
 
       responseJSON(res, Status.OK, "Response from model server", modelRes)
     } else {
-      responseJSON(res, Status.INVALID_REQUEST, "Access denied.", {})
+      responseJSON(res, Status.UNAUTHORIZED, "Access denied.", {})
     }
   })
 }
@@ -494,14 +626,18 @@ init()
 // 유틸리티
 ////////////////////////////////////////////////////////////////////////////////
 
+function logREST(method: string, route: string, content: string) {
+  debug(`[${chalk.red(method)} ${chalk.green(route)}] ${content}`)
+}
+
 /**
  * 토큰이 메모리에 있는지 검사합니다.
  * @param token 토큰
  * @returns 토큰이 있으면 `UserInfo`, 없으면 `null`
  */
-function verifyUserToken(token: string): UserInfo | undefined | null {
+function verifyUserToken(token: string) {
   if (userTokens.has(token)) {
-    return userTokens.get(token)
+    return userTokens.get(token) as UserInfo
   } else {
     return null
   }
@@ -516,52 +652,17 @@ function queryUserBySerial(serial: string) {
   return null
 }
 
-function safeNumber(input: unknown | null | undefined, dfvalue: number) {
-  if (input == null) {
-    return dfvalue
-  }
-  if (typeof input == "number") {
-    return input
-  }
-  if (typeof input == "string") {
-    const value = Number.parseInt(input)
-    if (Number.isNaN(value) || !Number.isFinite(value)) {
-      return dfvalue
-    }
-    return value
-  }
-  return dfvalue
-}
-
-function safeBoolean(input: unknown | null | undefined, dfvalue: boolean = false) {
-  if (input == null) {
-    return dfvalue
-  }
-  if (typeof input == "boolean") {
-    return input
-  }
-  if (typeof input == "string") {
-    const value = input.toLowerCase()
-    if (value == "true") {
-      return true
-    } else if (value == "false") {
-      return false
-    }
-  }
-  return dfvalue
-}
-
 /**
  * 카메라 토큰이 메모리에 있는지 검사합니다.
  * @param token 토큰
  * @returns 토큰이 있으면 시리얼(`string`), 없으면 `null`
  */
-function verifyCameraToken(token: string): string | undefined | null {
+function verifyCameraToken(token: string): string | null {
   if (token.length <= 0) {
     return null
   }
   if (cameraTokens.has(token)) {
-    return cameraTokens.get(token)
+    return cameraTokens.get(token) as string
   } else {
     return null
   }
