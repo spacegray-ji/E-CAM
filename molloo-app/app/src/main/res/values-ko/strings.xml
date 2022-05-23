@@ -38,10 +38,18 @@
     <string name="card_ecam_capture_desc">E-CAM의 카메라를 들고 이 버튼을 눌러 시작할 수 있어요.</string>
     <string name="toast_ecam_request_success">성공! 진행을 위해서 E-CAM 화면을 봐주세요.</string>
     <string name="toast_ecam_request_fail">무엇인가 잘못되었어요! 잠시 후 다시 시도해 주세요.</string>
+    <string name="tab_home">홈</string>
+    <string name="tab_photo">기록</string>
+    <string name="card_photo_state">치아 상태: %s</string>
+    <string name="card_photo_delete_fail">삭제에 실패했습니다. 나중에 다시 시도해주세요.</string>
 
     <!-- Generic -->
     <string name="add">추가</string>
     <string name="set">설정</string>
     <string name="cancel">취소</string>
     <string name="ok">확인</string>
+    <string name="cavity_state_0">좋음</string>
+    <string name="cavity_state_1">주의 필요</string>
+    <string name="cavity_state_2">나쁨</string>
+    <string name="cavity_state_unknown">알 수 없음</string>
 </resources>

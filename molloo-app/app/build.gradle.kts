@@ -6,6 +6,8 @@ plugins {
     kotlin("plugin.serialization") version Versions.kotlin
 }
 
+val ingrements = 4
+
 android {
     compileSdk = Apps.compileSdk
 
@@ -86,6 +88,7 @@ dependencies {
     Libs.AndroidX_Compose::class.memberProperties.forEach {
         implementation(it.getter.call() as String)
     }
+    // Google Material
     implementation(Libs.google_material)
     // OneUI Design
     implementation(Libs.oneui_design)
@@ -93,6 +96,9 @@ dependencies {
     implementation(Libs.appIntro)
     // Lottie (Animation)
     implementation(Libs.lottie)
+    implementation(Libs.lottie_compose)
+    // Landscapist (Image Loading)
+    implementation(Libs.landscapist_glide)
     // Fuel
     Libs.Fuel::class.memberProperties.forEach {
         implementation(it.getter.call() as String)

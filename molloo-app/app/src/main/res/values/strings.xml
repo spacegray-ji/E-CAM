@@ -39,8 +39,10 @@
     <string name="card_ecam_capture_desc">Hold E-CAM\'s camera and press this button to start.</string>
     <string name="toast_ecam_request_success">Success! Check E-CAM screen to future progression!</string>
     <string name="toast_ecam_request_fail">Something went wrong! Please try again at later.</string>
-
-
+    <string name="tab_home">Home</string>
+    <string name="tab_photo">History</string>
+    <string name="card_photo_state">Teeth State: %s</string>
+    <string name="card_photo_delete_fail">Delete failed! Please try again later.</string>
 
 
     <!-- Generic -->
@@ -48,4 +50,8 @@
     <string name="set">Set</string>
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
+    <string name="cavity_state_0">Good</string>
+    <string name="cavity_state_1">Take Care</string>
+    <string name="cavity_state_2">Bad</string>
+    <string name="cavity_state_unknown">Unknown</string>
 </resources>

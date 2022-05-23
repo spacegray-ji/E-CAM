@@ -6,10 +6,17 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.unopenedbox.molloo.network.MollooRequest
 import com.unopenedbox.molloo.store.PropStore
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import com.unopenedbox.molloo.struct.PhotoInfo
+import com.unopenedbox.molloo.struct.photo.PhotoPagingSource
+import com.unopenedbox.molloo.struct.photo.PhotoPagingSource2
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 /**
@@ -45,7 +52,20 @@ class MollooClientViewModel : ViewModel() {
     fun setUsername(username: String) {
         _username.value = username
     }
-
+    // PhotoFlow
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val photoItemFlow = camToken.flatMapLatest { token ->
+        Log.d("PhotoItemFlow", "Token: $token")
+        Pager(
+            config = PagingConfig(pageSize = 10),
+            pagingSourceFactory = {
+                PhotoPagingSource2(
+                    request,
+                    token,
+                )
+            }
+        ).flow.cachedIn(viewModelScope)
+    }
 
     init {
         viewModelScope.launch {
@@ -56,26 +76,26 @@ class MollooClientViewModel : ViewModel() {
                     Log.d("MollooClientViewModel", "Changed username: $uname, CamSerial: ${camSerial.value}, DeviceSerial: ${deviceSerial.value}")
                     val camSerialValue = camSerial.value
                     if (camSerialValue.isNotEmpty()) {
-                        _camToken.value = request.fetchToken(camSerialValue, uname)
+                        updateCamToken(camSerialValue, uname)
                         Log.d("MollooClientViewModel", "Cam Token: ${camToken.value}")
                     }
                     val deviceSerialValue = deviceSerial.value
                     if (deviceSerialValue.isNotEmpty()) {
-                        _deviceToken.value = request.fetchToken(deviceSerialValue, uname)
+                        updateDeviceToken(deviceSerialValue, uname)
                     }
                 }
             }
             launch {
                 deviceSerial.collect { serial ->
                     if (serial.isNotEmpty()) {
-                        _deviceToken.value = request.fetchToken(serial, username.value)
+                        updateDeviceToken(serial, username.value)
                     }
                 }
             }
             launch {
                 camSerial.collect { serial ->
                     if (serial.isNotEmpty()) {
-                        _camToken.value = request.fetchToken(serial, username.value)
+                        updateCamToken(serial, username.value)
                     }
                 }
             }
@@ -90,7 +110,33 @@ class MollooClientViewModel : ViewModel() {
         updateCamSerial(camSerial)
     }
 
-    suspend fun updateCamSerial(serial: String) {
+    private suspend fun updateCamToken(serial:String, username: String) {
+        if (camToken.value.isNotEmpty()) {
+            val tokenResp = request.verifyToken(camToken.value)
+            if (tokenResp != null) {
+                if (tokenResp.valid && tokenResp.username == username) {
+                    // Skip
+                    return
+                }
+            }
+        }
+        _camToken.value = request.fetchToken(serial, username)
+    }
+
+    private suspend fun updateDeviceToken(serial:String, username: String) {
+        if (deviceToken.value.isNotEmpty()) {
+            val tokenResp = request.verifyToken(deviceToken.value)
+            if (tokenResp != null) {
+                if (tokenResp.valid && tokenResp.username == username) {
+                    // Skip
+                    return
+                }
+            }
+        }
+        _deviceToken.value = request.fetchToken(serial, username)
+    }
+
+    fun updateCamSerial(serial: String) {
         if (camSerial.value != serial) {
             _camSerial.value = serial
         }

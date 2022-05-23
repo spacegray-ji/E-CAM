@@ -21,7 +21,7 @@ import com.unopenedbox.molloo.R
 
 
 @Composable
-fun InfoCamCard(camSerial:String, onClick:() -> Unit = {}, modifier: Modifier = Modifier) {
+fun CamInfoCard(camSerial:String, modifier: Modifier = Modifier, onClick:() -> Unit = {}) {
   OutlinedCard(
     onClick = onClick,
   ) {
@@ -61,8 +61,9 @@ fun InfoCamCard(camSerial:String, onClick:() -> Unit = {}, modifier: Modifier = 
 @Preview(showBackground = true)
 @Composable
 fun InfoCamCardPreview() {
-  InfoCamCard(
-    "CAMSERIAL0000",
-    {},
-  )
+  CamInfoCard(
+    "CAMSERIAL0000"
+  ) {
+
+  }
 }

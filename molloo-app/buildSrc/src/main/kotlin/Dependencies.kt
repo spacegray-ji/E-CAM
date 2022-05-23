@@ -15,11 +15,14 @@ object Versions {
         const val compose_material3 = "1.0.0-alpha10"
         const val compose = "1.2.0-alpha08"
         const val navigation = "2.5.0-beta01"
+        const val paging3 = "3.1.1"
+        const val paging3_compose = "1.0.0-alpha14"
     }
 
     object Kotlin {
         const val coroutines = "1.3.9"
         const val serialization_json = "1.3.2"
+        const val datetime = "0.3.3"
     }
 
     const val google_material = "1.6.0"
@@ -28,6 +31,7 @@ object Versions {
     const val lottie = "5.0.3"
     const val fuel = "2.3.1"
     const val material_dialog = "3.3.0"
+    const val landscapist = "1.5.2"
 
     const val junit = "4.12"
 }
@@ -50,6 +54,7 @@ object Libs {
         const val fragment = "androidx.fragment:fragment-ktx:${Versions.AndroidX.fragment}"
         const val navigation_fragment = "androidx.navigation:navigation-fragment-ktx:${Versions.AndroidX.navigation}"
         const val navigation_ui = "androidx.navigation:navigation-ui-ktx:${Versions.AndroidX.navigation}"
+        const val paging3 = "androidx.paging:paging-runtime:${Versions.AndroidX.paging3}"
     }
     object AndroidX_Compose {
         const val activity = "androidx.activity:activity-compose:${Versions.AndroidX.activity}"
@@ -61,18 +66,22 @@ object Libs {
         const val ui_tooling = "androidx.compose.ui:ui-tooling:${Versions.AndroidX.compose}"
         const val ui_tooling_preview = "androidx.compose.ui:ui-tooling-preview:${Versions.AndroidX.compose}"
         const val foundation = "androidx.compose.foundation:foundation:${Versions.AndroidX.compose}"
+        const val paging3_compose = "androidx.paging:paging-compose:${Versions.AndroidX.paging3_compose}"
     }
 
     object Kotlin {
         const val stdlib = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${Versions.kotlin}"
         const val coroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Versions.Kotlin.coroutines}"
         const val serialization_json = "org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.Kotlin.serialization_json}"
+        const val datetime = "org.jetbrains.kotlinx:kotlinx-datetime:${Versions.Kotlin.datetime}"
     }
 
     const val google_material = "com.google.android.material:material:${Versions.google_material}"
     const val oneui_design = "io.github.yanndroid:oneui:${Versions.oneui_design}"
     const val appIntro = "com.github.AppIntro:AppIntro:${Versions.appIntro}"
     const val lottie = "com.airbnb.android:lottie:${Versions.lottie}"
+    const val lottie_compose = "com.airbnb.android:lottie-compose:${Versions.lottie}"
+    const val landscapist_glide = "com.github.skydoves:landscapist-glide:${Versions.landscapist}"
 
     object Fuel {
         const val core = "com.github.kittinunf.fuel:fuel:${Versions.fuel}"

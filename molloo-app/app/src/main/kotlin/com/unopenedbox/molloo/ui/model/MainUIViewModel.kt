@@ -26,6 +26,13 @@ class MainUIViewModel : ViewModel() {
     _userList.value = list
   }
 
+  // Selected Tab
+  private val _selectedTab = MutableStateFlow(0)
+  val selectedTab = _selectedTab.asStateFlow()
+  fun setSelectedTab(tab: Int) {
+    _selectedTab.value = tab
+  }
+
 
 
   private val _titleInputFlow = MutableStateFlow("")

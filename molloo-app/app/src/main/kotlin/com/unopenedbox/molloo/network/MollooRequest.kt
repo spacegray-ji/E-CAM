@@ -9,10 +9,8 @@ import com.github.kittinunf.fuel.serialization.kotlinxDeserializerOf
 import com.github.kittinunf.result.Result
 import com.unopenedbox.molloo.BuildConfig
 import com.unopenedbox.molloo.struct.GenResponse
-import com.unopenedbox.molloo.struct.resp.EmptyResp
-import com.unopenedbox.molloo.struct.resp.SerialResp
-import com.unopenedbox.molloo.struct.resp.StatusResp
-import com.unopenedbox.molloo.struct.resp.TokenResp
+import com.unopenedbox.molloo.struct.PhotoInfo
+import com.unopenedbox.molloo.struct.resp.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.serializer
@@ -21,7 +19,7 @@ import java.io.IOException
 import java.net.SocketTimeoutException
 import kotlin.coroutines.coroutineContext
 
-class MollooRequest() {
+class MollooRequest {
     private var token: String = ""
     var serial: String = ""
     private val version = BuildConfig.VERSION_CODE
@@ -70,6 +68,9 @@ class MollooRequest() {
         )
     }
 
+    /**
+     * Fetch token with serial & username (No camera)
+     */
     suspend fun fetchToken(serial:String, username:String = "Default", isCamera:Boolean = false): String {
         return request(
             fuel = Fuel.upload("/token", Method.PUT, listOf(
@@ -87,10 +88,62 @@ class MollooRequest() {
         )
     }
 
+    suspend fun verifyToken(token:String): VerifyTokenResp? {
+        return requestGet("/verifytoken", VerifyTokenResp.serializer(), listOf(
+            "token" to token,
+        )).fold(
+            {result -> if (result.isError) null else result.data },
+            {error ->
+                Log.e("MollooRequest", "fetchNewSerial: ${error.exception}")
+                null
+            }
+        )
+    }
+
+    /**
+     * Request E-Cam Capture binded of token
+     */
     suspend fun requestECamPhoto(token:String):Boolean {
         return request(
             fuel = Fuel.upload("/photo/request", Method.POST, listOf(
                 "token" to token,
+            )),
+            serializer = Unit.serializer(),
+        ).fold(
+            {result -> !result.isError},
+            {error ->
+                Log.e("MollooRequest", "requestECamPhoto: ${error.exception}")
+                false
+            }
+        )
+    }
+
+    suspend fun fetchPhotos(token:String, maxCount:Int = 10, beforeId:String = "", afterId:String = "", includeTarget:Boolean = false, page:Int = 1): List<PhotoInfo> {
+        return requestGet("/photo", PhotoResp.serializer(), listOf(
+            "token" to token,
+            "maxCount" to maxCount.toString(),
+            "beforeId" to beforeId,
+            "afterId" to afterId,
+            "includeTarget" to includeTarget.toString(),
+            "page" to page.toString(),
+        )).fold(
+            {result -> if (result.isError || result.data == null) emptyList() else result.data.photos.map {
+                it.imageURL = "${BASE_URL}${result.data.dirpath}${it.filename}"
+                it
+                }
+            },
+            {error ->
+                Log.e("MollooRequest", "fetchPhotos: ${error.exception}")
+                emptyList()
+            }
+        )
+    }
+
+    suspend fun deletePhoto(token: String, photoId:String): Boolean {
+        return request(
+            fuel = Fuel.upload("/photo", Method.DELETE, listOf(
+                "token" to token,
+                "photoId" to photoId,
             )),
             serializer = Unit.serializer(),
         ).fold(

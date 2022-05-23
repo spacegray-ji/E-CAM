@@ -24,6 +24,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
@@ -31,6 +32,8 @@ import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.rounded.ManageAccounts
 import androidx.compose.material.icons.rounded.PersonAddAlt
 import androidx.compose.material3.*
@@ -60,6 +63,7 @@ import androidx.core.widget.doBeforeTextChanged
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.input.input
 import com.airbnb.lottie.LottieAnimationView
@@ -73,6 +77,7 @@ import com.unopenedbox.molloo.R
 import com.unopenedbox.molloo.store.PropStore
 import com.unopenedbox.molloo.store.prefStore
 import com.unopenedbox.molloo.struct.AppUser
+import com.unopenedbox.molloo.struct.NavItem
 import com.unopenedbox.molloo.ui.ComposeExample
 import com.unopenedbox.molloo.ui.PreviewMessageCard
 import com.unopenedbox.molloo.ui.model.MainUIViewModel
@@ -110,8 +115,10 @@ class MainCompose : ComponentActivity() {
       val camSerialValue: String by clientModel.camSerial.collectAsState()
       val userNameValue: String by clientModel.username.collectAsState()
       val userListValue: Set<String> by uiModel.userList.collectAsState()
+      val photoItems = clientModel.photoItemFlow.collectAsLazyPagingItems()
 
       val scrollState = rememberScrollState()
+      val selectedItemTab: Int by uiModel.selectedTab.collectAsState()
 
       MollooTheme {
         ServerUnresponseDialog(!isServerAliveValue) {
@@ -160,56 +167,118 @@ class MainCompose : ComponentActivity() {
                 }.show()
               }
             )
-          }
-        ) { contentPadding ->
-          Box(modifier = Modifier
-            .padding(contentPadding)
-            .verticalScroll(scrollState)) {
-            Column(
-              modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp),
+          },
+          bottomBar = {
+            NavigationBar(
+
             ) {
-              val isCamAvailable = camSerialValue.isNotEmpty() && camTokenValue.isNotEmpty()
-              Spacer(Modifier.height(20.dp))
-              // 카메라 추가 버튼 & 정보 버튼
-              if (isCamAvailable) {
-                InfoCamCard(camSerial = camSerialValue)
-              } else {
-                AddCamButton(onClick = {
-                  currentDialog = buildInputDialog(
-                    title = R.string.dialog_add_cam_title,
-                    hint = R.string.dialog_add_cam_hint,
-                    desc = R.string.dialog_add_cam_desc,
-                    prefill = camSerialValue,
-                    positiveBtnText = R.string.add,
-                    onInput = { text ->
-                      currentDialog?.dismiss()
-                      lifecycleScope.launch {
-                        clientModel.setCamSerial(text)
-                        // propStore.setCamSerial(text)
-                      }
-                    },
-                    textTransformer = { text ->
-                      Regex("[A-Za-z0-9]+").findAll(text.trim()).map { it.value }.joinToString("")
-                    },
-                    animIcon = R.raw.connection,
-                  ).show()
-                }) 
-              }
-              Spacer(Modifier.height(20.dp))
-              if (isCamAvailable) {
-                // 캡쳐 버튼
-                CaptureButtonSingle(onClick = {
-                  lifecycleScope.launch {
-                    val result = clientModel.request.requestECamPhoto(
-                      token = camTokenValue,
-                    )
-                    Toast.makeText(this@MainCompose, if (result) R.string.toast_ecam_request_success else R.string.toast_ecam_request_fail, Toast.LENGTH_LONG).show()
-                  }
-                })
+              listOf(
+                NavItem(Icons.Outlined.Home, stringResource(id = R.string.tab_home)),
+                NavItem(Icons.Outlined.History, stringResource(id = R.string.tab_photo)),
+              ).forEachIndexed { index, item ->
+                NavigationBarItem(
+                  icon = {
+                    Icon(imageVector = item.icon, contentDescription = item.label)
+                  },
+                  label = {
+                    Text(item.label)
+                  },
+                  selected = selectedItemTab == index,
+                  onClick = {
+                    uiModel.setSelectedTab(index)
+                    if (index == 1) {
+                      photoItems.refresh()
+                    }
+                  },
+                )
               }
             }
+          }
+        ) { contentPadding ->
+          when (selectedItemTab) {
+            0 -> Box(modifier = Modifier
+              .padding(contentPadding)
+              .verticalScroll(scrollState)) {
+              Column(
+                modifier = Modifier
+                  .fillMaxWidth()
+                  .padding(horizontal = 20.dp),
+              ) {
+                val isCamAvailable = camSerialValue.isNotEmpty() && camTokenValue.isNotEmpty()
+                Spacer(Modifier.height(20.dp))
+                // 카메라 추가 버튼 & 정보 버튼
+                if (isCamAvailable) {
+                  CamInfoCard(camSerial = camSerialValue)
+                } else {
+                  AddCamButton(onClick = {
+                    currentDialog = buildInputDialog(
+                      title = R.string.dialog_add_cam_title,
+                      hint = R.string.dialog_add_cam_hint,
+                      desc = R.string.dialog_add_cam_desc,
+                      prefill = camSerialValue,
+                      positiveBtnText = R.string.add,
+                      onInput = { text ->
+                        currentDialog?.dismiss()
+                        lifecycleScope.launch {
+                          clientModel.setCamSerial(text)
+                          // propStore.setCamSerial(text)
+                        }
+                      },
+                      textTransformer = { text ->
+                        Regex("[A-Za-z0-9]+").findAll(text.trim()).map { it.value }.joinToString("")
+                      },
+                      animIcon = R.raw.connection,
+                    ).show()
+                  })
+                }
+                Spacer(Modifier.height(20.dp))
+                if (isCamAvailable) {
+                  // 캡쳐 버튼
+                  CaptureButtonSingle(onClick = {
+                    lifecycleScope.launch {
+                      val result = clientModel.request.requestECamPhoto(
+                        token = camTokenValue,
+                      )
+                      Toast.makeText(this@MainCompose, if (result) R.string.toast_ecam_request_success else R.string.toast_ecam_request_fail, Toast.LENGTH_LONG).show()
+                    }
+                  })
+                }
+              }
+            }
+            1 -> LazyColumn(
+              contentPadding = PaddingValues(
+                horizontal = 20.dp,
+                vertical = 8.dp,
+              ),
+              modifier = Modifier
+                .fillMaxSize()
+                .padding(contentPadding),
+            ) {
+              items(
+                count = photoItems.itemCount,
+                key = { index -> photoItems[index]?.id ?: ""},
+              ) {item ->
+                photoItems[item]?.let {photo ->
+                  PhotoInfoCard(photo) { type ->
+                    when (type) {
+                      ClickType.REMOVE -> lifecycleScope.launch {
+                        val result = clientModel.request.deletePhoto(
+                          token = camTokenValue,
+                          photoId = photo.id,
+                        )
+                        if (result) {
+                          photoItems.refresh()
+                        } else {
+                          Toast.makeText(this@MainCompose, R.string.card_photo_delete_fail, Toast.LENGTH_LONG).show()
+                        }
+                      }
+                      else -> Unit
+                    }
+                  }
+                }
+              }
+            }
+            else -> Text("No Tab Assigned!")
           }
         }
       }
@@ -261,7 +330,16 @@ class MainCompose : ComponentActivity() {
             propStore.setUsernameList(it.toList())
           }
         }
-
+        launch {
+          clientModel.camToken.collect { token ->
+            /*
+            val images = clientModel.request.fetchPhotos(token)
+            for (image in images) {
+              Log.d("MainCompose", "Image ${image.id}: $image")
+            }
+            */
+          }
+        }
         loadedAll = true
       }
     }
