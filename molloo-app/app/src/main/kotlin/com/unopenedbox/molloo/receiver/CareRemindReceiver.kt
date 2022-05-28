@@ -27,7 +27,9 @@ class CareRemindReceiver : BroadcastReceiver() {
     val careType = intent.getStringExtra(CARE_TYPE) ?: context.getString(R.string.care_type_default)
     val itemId = intent.getLongExtra(ITEM_ID, -1)
     val daysLeft = intent.getIntExtra(DAYS_LEFT, -1)
-    val username = intent.getStringExtra(USERNAME) ?: context.getString(R.string.username_default)
+    val username = intent.getStringExtra(USERNAME)?.let {
+      if (it == "Default") null else it
+    } ?: context.getString(R.string.username_default)
 
     createNotificationChannel(context)
     deliverNotification(context, careType, daysLeft, username)

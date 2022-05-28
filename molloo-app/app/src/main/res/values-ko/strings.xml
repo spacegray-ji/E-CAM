@@ -72,7 +72,7 @@
     <string name="care_reminder_noti_channel_title">검진 예약 알림</string>
     <string name="care_reminder_noti_channel_description">다음 검진일이 올 시에 알림으로 알려줍니다.</string>
     <string name="care_reminder_noti_close_title">%s분의 %s 검진일이 다가오고 있어요.</string>
-    <string name="care_reminder_noti_close_description">%님의 검진일이 %d일 남았어요. 다가오는 검진일을 준비해주세요.</string>
+    <string name="care_reminder_noti_close_description">%s님의 검진일이 %d일 남았어요. 다가오는 검진일을 준비해주세요.</string>
     <string name="care_reminder_noti_title">오늘은 %s분이 %s 검진을 받는 날이에요.</string>
     <string name="care_reminder_noti_description">%s님, 오늘 잊지 말고 병원에 가서 검진을 받아보세요. 😊</string>
     <string name="tip_noti_deliver_channel_title">매일매일 팁</string>
