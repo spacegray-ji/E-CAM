@@ -8,11 +8,11 @@
       "runtimeExecutable": "node",
       "runtimeArgs": [
         "--nolazy",
-        "-r",
-        "ts-node/register/transpile-only"
+        "--loader",
+        "ts-node/esm",
       ],
       "args": [
-        "src/main.ts",
+        "src/main.mts",
         "--debug",
       ],
       "cwd": "${workspaceRoot}",
@@ -26,44 +26,27 @@
         "DEBUG": "molloo:*",
       }
     },
-    // To debug, make sure a *.spec.ts file is active in the editor, then run a configuration
     {
+      "name": "Launch with compile",
       "type": "node",
       "request": "launch",
-      "name": "Debug Active Spec",
-      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ava",
-      "runtimeArgs": [
-        "debug",
-        "--break",
-        "--serial",
-        "${file}"
+      "runtimeExecutable": "node",
+      "runtimeArgs": [],
+      "args": [
+        "build/main.mjs",
+        "--debug",
       ],
-      "port": 9229,
-      "outputCapture": "std",
+      "cwd": "${workspaceRoot}",
+      "internalConsoleOptions": "neverOpen",
+      "console": "integratedTerminal",
+      "preLaunchTask": "buildTS",
       "skipFiles": [
-        "<node_internals>/**/*.js"
+        "<node_internals>/**",
+        "node_modules/**"
       ],
-      "preLaunchTask": "npm: build"
-      // "smartStep": true
-    },
-    {
-      // Use this one if you're already running `yarn watch`
-      "type": "node",
-      "request": "launch",
-      "name": "Debug Active Spec (no build)",
-      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ava",
-      "runtimeArgs": [
-        "debug",
-        "--break",
-        "--serial",
-        "${file}"
-      ],
-      "port": 9229,
-      "outputCapture": "std",
-      "skipFiles": [
-        "<node_internals>/**/*.js"
-      ]
-      // "smartStep": true
+      "env": {
+        "DEBUG": "molloo:*",
+      }
     }
   ]
 }

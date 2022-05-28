@@ -8,11 +8,11 @@
       "runtimeExecutable": "node",
       "runtimeArgs": [
         "--nolazy",
-        "-r",
-        "ts-node/register/transpile-only"
+        "--loader",
+        "ts-node/esm",
       ],
       "args": [
-        "src/main.ts",
+        "src/main.mts",
         "--debug",
       ],
       "cwd": "${workspaceRoot}",

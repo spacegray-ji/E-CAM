@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<de.dlyt.yanndroid.oneui.widget.RoundLinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/linearContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        style="@style/TextAppearance.AppCompat.Subhead"
+        android:text="@string/capture_suggest_title"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_marginTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Devider -->
+        <View
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:id="@+id/vertical_divider"
+            android:layout_width="1dp"
+            android:layout_height="100dp"
+            android:background="@color/color_divider" />
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="@id/vertical_divider"
+            android:clickable="true"
+            android:background="?selectableItemBackground"
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="130dp">
+            <com.google.android.material.imageview.ShapeableImageView
+                app:srcCompat="@drawable/ic_phone_camera"
+                app:contentPadding="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="100dp" />
+            <androidx.appcompat.widget.AppCompatTextView
+                android:text="@string/capture_device_phone"
+                style="@style/TextAppearance.AppCompat.Medium"
+                android:gravity="center_vertical"
+                android:layout_gravity="center_horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="@id/vertical_divider"
+            app:layout_constraintRight_toRightOf="parent"
+            android:clickable="true"
+            android:background="?selectableItemBackground"
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="130dp">
+            <com.google.android.material.imageview.ShapeableImageView
+                app:srcCompat="@drawable/ic_webcam"
+                app:contentPadding="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="100dp" />
+            <androidx.appcompat.widget.AppCompatTextView
+                android:text="@string/capture_device_cam"
+                style="@style/TextAppearance.AppCompat.Medium"
+                android:gravity="center_vertical"
+                android:layout_gravity="center_horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</de.dlyt.yanndroid.oneui.widget.RoundLinearLayout>

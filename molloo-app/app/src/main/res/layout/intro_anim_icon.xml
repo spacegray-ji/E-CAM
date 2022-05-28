@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        style="@style/TextAppearance.AppCompat.Headline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="50dp"
+        android:layout_marginEnd="50dp"
+        android:textAlignment="center"
+        android:id="@+id/title_text_view"
+        android:textSize="36sp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/anim_icon_view"
+        tools:text="Title" />
+
+    <com.airbnb.lottie.LottieAnimationView
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.4"
+        tools:lottie_rawRes="@raw/wave"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true"
+        android:id="@+id/anim_icon_view"
+        android:background="@drawable/white_round_square"
+        android:padding="20dp"
+        android:layout_width="340dp"
+        android:layout_height="340dp" />
+
+    <TextView
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/anim_icon_view"
+        tools:text="Description\nDescription2"
+        style="@style/TextAppearance.AppCompat.Body2"
+        android:id="@+id/description_text_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+        android:textAlignment="center"
+        android:textSize="20sp"
+        />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

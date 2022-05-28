@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">몰루</string>
+    <!-- MainActivity -->
+    <string name="hello_world">안녕 세계!</string>
+    <string name="dialog_noresp_title">서버로부터 응답 없음</string>
+    <string name="dialog_noresp_message">서버가 응답하지 않습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="dialog_unknownresp_title">예상하지 못한 응답</string>
+    <string name="dialog_unknownresp_message">서버로부터 잘못된 응답을 받았습니다. 나중에 다시 시도해 주세요.</string>
+    <!-- AppIntroActivity -->
+    <string name="app_intro_act_title">환영합니다</string>
+    <string name="intro_page1_title">안녕하세요!</string>
+    <string name="intro_page1_desc">새로운 사용자는 언제나 환영이에요.\n몰루 앱은 간단한 치아 진단 앱이에요.</string>
+    <string name="intro_page2_title">무엇을 하는 건가요?</string>
+    <string name="intro_page2_desc">몰루는 충치를 감지해 치아 관리를 도와줍니다.\n아마도요.....</string>
+    <string name="intro_page3_title">사용해 봅시다!</string>
+    <string name="intro_page3_desc">가즈아~</string>
+    <!-- ActionFragment -->
+    <string name="capture_suggest_title">촬영하기</string>
+    <string name="capture_device_phone">휴대폰</string>
+    <string name="capture_device_cam">몰루 카메라</string>
+    <!-- =========== -->
+    <!-- MainCompose -->
+    <!-- =========== -->
+    <string name="username_default">사용자</string>
+    <string name="username_change">사용자 변경</string>
+    <string name="add_cam_device_title">E-CAM 장치 추가</string>
+    <string name="add_cam_device_desc">사용하기 위해 이 카드를 클릭해 E-CAM 장치를 추가해 주세요.</string>
+    <string name="dialog_add_user_title">사용자 추가</string>
+    <string name="dialog_add_user_desc">추가할 사용자 이름을 입력해주세요.</string>
+    <string name="dialog_add_user_hint">사용자 이름</string>
+    <string name="dialog_add_cam_title">E-Cam 장치 설정</string>
+    <string name="dialog_add_cam_desc">E-Cam의 시리얼 번호를 입력해 주세요.</string>
+    <string name="dialog_add_cam_hint">E-Cam 시리얼 번호</string>
+    <string name="dialog_sel_user_title">사용자 변경</string>
+    <string name="card_ecam_connected">E-Cam이 연결되었습니다</string>
+    <string name="card_ecam_serial">고유 번호: %s</string>
+    <string name="card_ecam_suggestcapture">이제 E-Cam으로 치아를 진단하실 수 있습니다.\n홈에서 E-CAM으로 촬영하기 버튼을 눌러 시작하세요.</string>
+    <string name="card_ecam_capture_title">E-CAM으로 촬영하기</string>
+    <string name="card_ecam_capture_desc">촬영 기록을 남기고 치아를 진단하기 위해\nE-CAM과 함께 이 버튼을 눌러 시작해 보세요.</string>
+    <string name="toast_ecam_request_success">성공! 진행을 위해서 E-CAM 화면을 봐주세요.</string>
+    <string name="toast_ecam_request_fail">무엇인가 잘못되었어요! 잠시 후 다시 시도해 주세요.</string>
+    <!-- MainCompose - Tab -->
+    <string name="tab_home">홈</string>
+    <string name="tab_photo">촬영 기록</string>
+    <string name="tab_care">검진 기록</string>
+    <string name="tab_settings">설정</string>
+    <!-- MainCompose - Photo Tab -->
+    <string name="card_photo_state">치아 상태: %s</string>
+    <string name="card_photo_delete_fail">삭제에 실패했습니다. 나중에 다시 시도해주세요.</string>
+    <!-- MainCompose - Care Tab -->
+    <string name="care_date_format">검진일: %s</string>
+    <string name="care_next_date">다음 검진일</string>
+    <string name="care_next_date_format">다음 검진일: %s</string>
+    <string name="dialog_care_title">검진 기록 메모</string>
+    <string name="dialog_care_desc">언제, 어떤 검진을 했는지 적어주세요.</string>
+    <string name="dialog_care_type_placeholder">검진 사유</string>
+    <string name="dialog_care_next_select_manual">직접 선택</string>
+    <string name="care_weeks">%d주일 후%s</string>
+    <string name="care_months">%d달 후%s</string>
+    <string name="care_years">%d년 후%s</string>
+    <string name="care_postfix_ss"></string>
+    <string name="card_care_title">검진 기록 추가</string>
+    <string name="card_care_description">검진 기록을 추가해주시면 다음 검진일 날 알려드려요.</string>
+    <string name="care_feature_none">없음</string>
+    <!-- MainCompose - Settings Tab -->
+    <string name="card_user_change_guide">사용자를 오른쪽의 버튼 혹은 액션바 왼쪽의 아이콘을 눌러 바꿀 수 있습니다.</string>
+    <string name="card_info_title">Molloo 앱 %s</string>
+    <string name="card_info_description">졸업작품</string>
+
+    <!-- Care Reminder Broadcast -->
+    <string name="care_reminder_noti_channel_title">검진 예약 알림</string>
+    <string name="care_reminder_noti_channel_description">다음 검진일이 올 시에 알림으로 알려줍니다.</string>
+    <string name="care_reminder_noti_close_title">%s분의 %s 검진일이 다가오고 있어요.</string>
+    <string name="care_reminder_noti_close_description">%s님의 검진일이 %d일 남았어요. 다가오는 검진일을 준비해주세요.</string>
+    <string name="care_reminder_noti_title">오늘은 %s분이 %s 검진을 받는 날이에요.</string>
+    <string name="care_reminder_noti_description">%s님, 오늘 잊지 말고 병원에 가서 검진을 받아보세요. 😊</string>
+    <string name="tip_noti_deliver_channel_title">매일매일 팁</string>
+    <string name="tip_noti_deliver_channel_description">치아를 위한 리빙포인트.</string>
+    <string name="tip_noti_deliver_title">오늘의 치아 팁이 도착했어요.</string>
+
+
+
+
+    <!-- Generic -->
+    <string name="add">추가</string>
+    <string name="set">설정</string>
+    <string name="cancel">취소</string>
+    <string name="ok">확인</string>
+    <string name="user">사용자</string>
+    <string name="switch_user">변경</string>
+    <string name="cavity_state_0">양호</string>
+    <string name="cavity_state_1">충치 의심</string>
+    <string name="cavity_state_2">충치 위험</string>
+    <string name="cavity_state_unknown">알 수 없음</string>
+    <string name="format_yyyymmdd">yyyy년 MM월 dd일</string>
+    <string name="care_type_default">이빨</string>
+</resources>

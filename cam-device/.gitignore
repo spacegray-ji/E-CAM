@@ -10,3 +10,12 @@ coverage
 yarn.lock
 
 data/**
+
+# WebRTC-Streamer
+webrtc-streamer
+
+# Serial Info
+serial.json
+
+# Uploads
+uploads/**

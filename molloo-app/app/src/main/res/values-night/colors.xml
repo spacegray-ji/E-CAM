@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common -->
+    <color name="color_divider">#222222</color>
+    <!-- Splash Colors -->
+    <color name="color_splash_icon">@color/white</color>
+    <color name="color_splash_back">@color/black</color>
+    <color name="color_animicon_back">@color/white</color>
+    <!-- Intro Colors -->
+    <color name="appintro_title_color">@color/white</color>
+    <color name="appintro_desc_color">@color/white</color>
+    <color name="appintro_icon_tint">@color/white</color>
+    <color name="appintro_default_unselected_color">#aaaaaa</color>
+    <color name="appintro_default_selected_color">#e3e3e3</color>
+    <color name="appintro_navbar_color">@color/black</color>
+</resources>

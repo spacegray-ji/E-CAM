@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<de.dlyt.yanndroid.oneui.layout.ToolbarLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:title="Main"
+    app:expandable="true"
+    app:expanded="true"
+    tools:context=".MainActivity">
+
+    <de.dlyt.yanndroid.oneui.widget.RoundNestedScrollView
+        app:layout_behavior="@string/sesl_appbar_scrolling_view_behavior"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <include layout="@layout/capture_suggest_container" />
+
+        </LinearLayout>
+
+    </de.dlyt.yanndroid.oneui.widget.RoundNestedScrollView>
+</de.dlyt.yanndroid.oneui.layout.ToolbarLayout>

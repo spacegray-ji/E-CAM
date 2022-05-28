@@ -1,0 +1,11 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.root_container {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}

@@ -1,0 +1,146 @@
+import got from "got-cjs"
+import { spawn } from "child_process"
+import os from "node:os"
+import fs from "fs-extra"
+import FormData from "form-data"
+import { io, Socket } from "socket.io-client"
+import { Gpio } from "pigpio"
+import { UserInfo } from "./user-info"
+
+const mySerial = "12345"
+
+let lastTime = Date.now()
+const btn = new Gpio(17, {
+  mode: Gpio.INPUT,
+  pullUpDown: Gpio.PUD_DOWN,
+  alert: true,
+  edge: Gpio.FALLING_EDGE,
+})
+
+const myHost = {
+  http: "http://192.168.3.95:3200",
+  ws: "ws://192.168.3.95:3201"
+}
+
+async function takePhoto() {
+  if (await fs.pathExists("./data/camera.jpg")) {
+    await fs.remove("./data/camera.jpg")
+  }
+  if (os.type().indexOf("Linux") >= 0) {
+    await new Promise((res, rej) => {
+      const child = spawn("ffmpeg", ["-f", "v4l2", "-video_size", "1920x1080", "-input_format", "mjpeg", "-i", "/dev/video0", "-frames:v", "1", "data/camera.jpg", "-y"], {
+        cwd: "./",
+        stdio: "inherit",
+      })
+      child.on("error", rej)
+      child.on("exit", res)
+    })
+  } else {
+    return fs.readFile("./data/dummy.jpg")
+  }
+  if (!await fs.pathExists("./data/camera.jpg")) {
+    throw new Error("Camera not found")
+  }
+  const image = await fs.readFile("./data/camera.jpg")
+  return image
+}
+
+type SocketHandshakeRes = { token: string, serial: string }
+class CamReceiver {
+  public serial: string
+  protected host: { http: string, ws: string }
+
+  public token: string
+  protected socket: Socket | null = null
+  public constructor(serial: string, host: { http: string, ws: string }) {
+    this.serial = serial
+    this.host = host
+    this.token = ""
+  }
+  public async connect() {
+    this.token = await this.getToken()
+    this.socket = await this.connectToken()
+  }
+
+  public async activateButton() {
+    // Register button
+    btn.on("interrupt", async (level) => {
+      console.log(`Button Pressed with ${level}`)
+      if (Date.now() - lastTime >= 3000) {
+        lastTime = Date.now()
+        const image = await takePhoto()
+        const uploadRes = await uploadPhoto({ host: this.host.http, token: this.token, image })
+        console.log(JSON.stringify(uploadRes, null, 2))
+      }
+    })
+  }
+
+  public async connectToken() {
+    const socket = io(this.host.ws, {
+      query: {
+        token: this.token,
+      },
+      transports: ["websocket"],
+    })
+    socket.once("connected", async (r: SocketHandshakeRes) => {
+      console.log("Socket connected: " + JSON.stringify(r))
+    })
+    socket.on("error", (text: string) => {
+      if (text.startsWith("No device found with token")) {
+        if (!socket.disconnected) {
+          socket.disconnect()
+        }
+        this.connect()
+      }
+    })
+
+    socket.on("takePhoto", async (user: UserInfo) => {
+      console.log("TakePhoto request with " + JSON.stringify(user))
+      if (user.serial === mySerial) {
+        const image = await takePhoto()
+        const uploadRes = await uploadPhoto({ host: this.host.http, token: this.token, image })
+        console.log(JSON.stringify(uploadRes, null, 2))
+      }
+    })
+    return socket
+  }
+
+  public async getToken() {
+    const tokenBody = new FormData()
+    tokenBody.append("serial", this.serial)
+    tokenBody.append("isCamera", "true")
+    const tokenRes: { data: { token: string }, isError: boolean } = await got(`${this.host.http}/token`, {
+      method: "PUT",
+      throwHttpErrors: false,
+      body: tokenBody
+    }).json()
+    if (tokenRes.isError) {
+      console.error(JSON.stringify(tokenRes, null, 2))
+      throw new Error("Server error")
+    }
+    const token = tokenRes.data.token
+    return token
+  }
+}
+
+async function uploadPhoto(params: { host: string, token: string, image: Buffer }) {
+  const { host, token, image } = params
+  const uploadBody = new FormData()
+  uploadBody.append("token", token)
+  uploadBody.append("photo", image, { filename: "camera.jpg" })
+  const uploadRes = await got(`${host}/photo`, {
+    method: "PUT",
+    throwHttpErrors: false,
+    body: uploadBody,
+  }).json()
+  return uploadRes
+}
+
+async function main() {
+  // const receiver = new CamReceiver(mySerial, myHost)
+  // await receiver.connect()
+  // await receiver.activateButton()
+}
+main()
+
+// ffmpeg -f v4l2 -video_size 1920x1080 -input_format mjpeg -i /dev/video0 -frames:v 1 test3.jpg -y
