@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="dental_tips">
+        <item>음식이 싱거울 땐 소금을 넣는다.</item>
+        <item>배가 고플 땐 음식을 먹는다.</item>
+    </string-array>
+</resources>

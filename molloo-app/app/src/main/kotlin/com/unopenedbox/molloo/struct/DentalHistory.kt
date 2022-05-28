@@ -6,7 +6,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class DentalHistory(
   val id: Long,
-  val reason:String,
+  val reason: String,
+  val username: String,
   val careDate: Instant,
   val nextCareDate: Instant,
 )

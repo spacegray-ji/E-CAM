@@ -36,6 +36,7 @@ import kotlin.time.Duration.Companion.days
 @Composable
 fun DentalAddDialog(
   isVisible: Boolean,
+  username: String,
   supportFragmentManager: FragmentManager? = null,
   initialData: DentalHistory? = null,
   onConfirm: (data:DentalHistory) -> Unit = {},
@@ -214,6 +215,7 @@ fun DentalAddDialog(
                 onConfirm(DentalHistory(
                   id = initialData?.id ?: timestamp,
                   reason = typeCare,
+                  username = username,
                   careDate = pickerDate,
                   nextCareDate = nextDate,
                 ))
@@ -242,6 +244,7 @@ fun DentalAddDialog(
 fun DentalAddDialogPreview() {
   DentalAddDialog(
     isVisible = true,
+    username = "Test",
     supportFragmentManager = null,
     onConfirm = {},
     onDismiss = {},

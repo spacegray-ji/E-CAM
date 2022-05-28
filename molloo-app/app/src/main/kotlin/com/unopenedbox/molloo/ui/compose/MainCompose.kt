@@ -3,9 +3,11 @@
 package com.unopenedbox.molloo.ui.compose
 
 import android.app.AlarmManager
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
 import android.util.Log
@@ -18,6 +20,7 @@ import androidx.activity.viewModels
 import androidx.annotation.RawRes
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
@@ -30,6 +33,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.AlarmManagerCompat
+import androidx.core.app.NotificationChannelCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.graphics.drawable.IconCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.Lifecycle
@@ -61,14 +68,26 @@ import com.unopenedbox.molloo.ui.compose.home.CamInfoCard
 import com.unopenedbox.molloo.ui.compose.home.CaptureButtonSingle
 import com.unopenedbox.molloo.ui.compose.main.MainTopBar
 import com.unopenedbox.molloo.ui.compose.main.ServerUnresponseDialog
+import com.unopenedbox.molloo.ui.compose.main.TipCard
+import com.unopenedbox.molloo.ui.compose.setting.UserInfoCard
+import com.unopenedbox.molloo.ui.compose.setting.UserInfoClickType
+import com.unopenedbox.molloo.ui.compose.setting.UserListEditDialog
+import com.unopenedbox.molloo.ui.compose.setting.VersionInfoCard
 import com.unopenedbox.molloo.ui.model.MainUIViewModel
 import com.unopenedbox.molloo.ui.model.MollooClientViewModel
 import com.unopenedbox.molloo.ui.theme.MollooTheme
 import com.vanpra.composematerialdialogs.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.*
+import kotlinx.datetime.TimeZone
+import java.nio.charset.Charset
+import java.util.*
+import kotlin.random.Random
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.seconds
 
@@ -114,6 +133,8 @@ class MainCompose : AppCompatActivity() {
       val timePickerState = rememberMaterialDialogState()
       val isDentalDialogShowing: Boolean by uiModel.isDentalDialogShowing.collectAsState()
       val editDentalItemPosition: Int by uiModel.dentalDialogEditPosition.collectAsState()
+      val isUserEditDialogShowing: Boolean by uiModel.isUserEditDialogShowing.collectAsState()
+      val tipText: String by uiModel.tipString.collectAsState()
 
       // Nav items
       val navItems = listOf(
@@ -132,9 +153,7 @@ class MainCompose : AppCompatActivity() {
               val isCamAvailable = camSerialValue.isNotEmpty() && camTokenValue.isNotEmpty()
               Spacer(Modifier.height(20.dp))
               // 카메라 추가 버튼 & 정보 버튼
-              if (isCamAvailable) {
-                CamInfoCard(camSerial = camSerialValue)
-              } else {
+              if (!isCamAvailable) {
                 AddCamButton(onClick = {
                   currentDialog = buildInputDialog(
                     title = R.string.dialog_add_cam_title,
@@ -155,10 +174,10 @@ class MainCompose : AppCompatActivity() {
                     animIcon = R.raw.connection,
                   ).show()
                 })
+                Spacer(Modifier.height(20.dp))
               }
               if (isCamAvailable) {
                 // 캡쳐 버튼
-                Spacer(Modifier.height(20.dp))
                 CaptureButtonSingle(onClick = {
                   lifecycleScope.launch {
                     val result = clientModel.request.requestECamPhoto(
@@ -167,8 +186,8 @@ class MainCompose : AppCompatActivity() {
                     Toast.makeText(this@MainCompose, if (result) R.string.toast_ecam_request_success else R.string.toast_ecam_request_fail, Toast.LENGTH_LONG).show()
                   }
                 })
+                Spacer(Modifier.height(20.dp))
               }
-              Spacer(Modifier.height(20.dp))
               // 검진 기록 추가
               AddCareCard(
                 isOutline = false,
@@ -177,6 +196,12 @@ class MainCompose : AppCompatActivity() {
                 uiModel.setDentalDialogEditPosition(-1)
                 uiModel.setIsDentalDialogShowing(true)
               }
+              Spacer(Modifier.height(20.dp))
+              // 팁
+              TipCard(
+                tipText = tipText,
+              )
+              Spacer(Modifier.height(20.dp))
             }
           }
         },
@@ -223,7 +248,7 @@ class MainCompose : AppCompatActivity() {
           }
         },
         /**
-         * Notifications Tab
+         * Care History Tab
          */
         NavItem(Icons.Outlined.LocalHospital, stringResource(id = R.string.tab_care)) { contentPadding ->
           LazyColumn(
@@ -245,14 +270,47 @@ class MainCompose : AppCompatActivity() {
               count = dentalHistoryItems.size,
               key = { index -> dentalHistoryItems[index].reason},
             ) { itemIndex ->
-              DentalInfoCard(dentalHistory = dentalHistoryItems[itemIndex]) {
-                uiModel.setDentalDialogEditPosition(itemIndex)
-                uiModel.setIsDentalDialogShowing(true)
+              val dentalHistory = dentalHistoryItems[itemIndex]
+              if (dentalHistory.username == userNameValue) {
+                DentalInfoCard(dentalHistory = dentalHistory) {
+                  uiModel.setDentalDialogEditPosition(itemIndex)
+                  uiModel.setIsDentalDialogShowing(true)
+                }
+                Spacer(Modifier.height(20.dp))
               }
-              Spacer(Modifier.height(20.dp))
             }
           }
         },
+        /**
+         * Settings Tab
+         */
+        NavItem(Icons.Outlined.Settings, stringResource(id = R.string.tab_settings)) { contentPadding ->
+          Column(
+            modifier = Modifier
+              .padding(contentPadding)
+              .padding(horizontal = 20.dp)
+          ) {
+            Spacer(Modifier.height(20.dp))
+            val isCamAvailable = camSerialValue.isNotEmpty() && camTokenValue.isNotEmpty()
+            if (isCamAvailable) {
+              CamInfoCard(camSerial = camSerialValue)
+              Spacer(Modifier.height(10.dp))
+            }
+            UserInfoCard(wrapUsername(userNameValue)) { type ->
+              when (type) {
+                UserInfoClickType.CREATE -> openAddUserDialog(clientModel, uiModel)
+                UserInfoClickType.SWITCH -> uiModel.setIsUserEditDialogShowing(true)
+                UserInfoClickType.CARD -> uiModel.setIsUserEditDialogShowing(true)
+                else -> Unit
+              }
+            }
+            Spacer(Modifier.height(10.dp))
+            val githubLink = stringResource(id = R.string.github_link)
+            VersionInfoCard {
+              startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(githubLink)))
+            }
+          }
+        }
       )
 
       MollooTheme {
@@ -263,11 +321,12 @@ class MainCompose : AppCompatActivity() {
           finish()
         }
         /**
-         * 검진 기록 추가
+         * 검진 기록 수정/추가
          */
         val dentalEditItem = dentalHistoryItems.getOrNull(editDentalItemPosition)
         DentalAddDialog(
           isVisible = isDentalDialogShowing,
+          username = userNameValue,
           supportFragmentManager = supportFragmentManager,
           initialData = dentalEditItem,
           onDismiss = {
@@ -295,6 +354,38 @@ class MainCompose : AppCompatActivity() {
           },
         )
         /**
+         * 사용자 정보 수정/추가
+         */
+        UserListEditDialog(
+          isVisible = isUserEditDialogShowing,
+          userList = userListValue.toList(),
+          currentUser = userNameValue,
+          onRemoveUser = { username ->
+            if (username != "Default") {
+              if (username == userNameValue) {
+                clientModel.setUsername("Default")
+              }
+              uiModel.setUserList(userListValue.toMutableSet().apply {
+                remove(username)
+              })
+              clientModel.setDentalList(dentalHistoryItems.toMutableList().filter {
+                it.username != username
+              })
+              uiModel.setIsUserEditDialogShowing(false)
+            }
+          },
+          onAddUser = {
+            uiModel.setIsUserEditDialogShowing(false)
+            openAddUserDialog(clientModel, uiModel)
+          },
+          onSwitchUser = { username ->
+            uiModel.setIsUserEditDialogShowing(false)
+            clientModel.setUsername(username)
+          },
+        ) {
+          uiModel.setIsUserEditDialogShowing(false)
+        }
+        /**
          * 메인 UI
          */
         Scaffold(
@@ -303,42 +394,11 @@ class MainCompose : AppCompatActivity() {
             MainTopBar(
               user = AppUser(wrapUsername(userNameValue)),
               onAddUserClicked = {
-                currentDialog = buildInputDialog(
-                  title = R.string.dialog_add_user_title,
-                  hint = R.string.dialog_add_user_hint,
-                  desc = R.string.dialog_add_user_desc,
-                  positiveBtnText = R.string.add,
-                  onInput = { text ->
-                    currentDialog?.dismiss()
-                    lifecycleScope.launch {
-                      clientModel.setUsername(text)
-                      // propStore.setUsername(text)
-
-                      val userList = propStore.usernameList.first()
-                      userList.toMutableSet().apply {
-                        add(text)
-                        uiModel.setUserList(this)
-                        // propStore.setUsernameList(this.toList())
-                      }
-                    }
-                  },
-                  animIcon = R.raw.customer,
-                  textTransformer = { text ->
-                    text.trim()
-                  },
-                ).show()
+                // Deprecated
+                // openAddUserDialog(clientModel, uiModel)
               },
               onListUserClicked = {
-                MaterialAlertDialogBuilder(this@MainCompose).apply {
-                  setTitle(R.string.dialog_sel_user_title)
-                  setItems(userListValue.toTypedArray()) { _, which ->
-                    val username = userListValue.toList()[which]
-                    lifecycleScope.launch {
-                      clientModel.setUsername(username)
-                      // propStore.setUsername(username)
-                    }
-                  }
-                }.show()
+                uiModel.setIsUserEditDialogShowing(true)
               }
             )
           },
@@ -371,6 +431,35 @@ class MainCompose : AppCompatActivity() {
     }
 
     onCreateAsync(clientModel, uiModel)
+  }
+
+  private fun openAddUserDialog(clientModel: MollooClientViewModel, uiModel: MainUIViewModel) {
+    currentDialog = buildInputDialog(
+      title = R.string.dialog_add_user_title,
+      hint = R.string.dialog_add_user_hint,
+      desc = R.string.dialog_add_user_desc,
+      positiveBtnText = R.string.add,
+      onInput = { text ->
+        currentDialog?.dismiss()
+        lifecycleScope.launch {
+          if (text.isNotEmpty() && text != getString(R.string.username_default) && text != "Default") {
+            clientModel.setUsername(text)
+            // propStore.setUsername(text)
+
+            val userList = propStore.usernameList.first()
+            userList.toMutableSet().apply {
+              add(text)
+              uiModel.setUserList(this)
+              // propStore.setUsernameList(this.toList())
+            }
+          }
+        }
+      },
+      animIcon = R.raw.customer,
+      textTransformer = { text ->
+        text.trim()
+      },
+    ).show()
   }
 
   /**
@@ -450,6 +539,7 @@ class MainCompose : AppCompatActivity() {
                   putExtra(CareRemindReceiver.CARE_TYPE, dental.reason)
                   putExtra(CareRemindReceiver.ITEM_ID, dental.id)
                   putExtra(CareRemindReceiver.DAYS_LEFT, leftDay)
+                  putExtra(CareRemindReceiver.USERNAME, dental.username)
                 }
                 val pendingIntent = PendingIntent.getBroadcast(
                   this@MainCompose,
@@ -470,6 +560,7 @@ class MainCompose : AppCompatActivity() {
                   putExtra(CareRemindReceiver.CARE_TYPE, dental.reason)
                   putExtra(CareRemindReceiver.ITEM_ID, dental.id)
                   putExtra(CareRemindReceiver.DAYS_LEFT, leftDay)
+                  putExtra(CareRemindReceiver.USERNAME, dental.username)
                 }
                 val pendingIntent = PendingIntent.getBroadcast(
                   this@MainCompose,
@@ -495,6 +586,73 @@ class MainCompose : AppCompatActivity() {
               }
             }
             propStore.setDentalHistoryList(list)
+          }
+        }
+        launch {
+          if (resources.configuration.locales[0].language == "ko") {
+            val tips = withContext(Dispatchers.IO) {
+              val tipsLocal = mutableListOf<String>()
+              kotlin.runCatching {
+                resources.assets.open("tips.txt").bufferedReader(Charset.forName("UTF-8")).use {
+                  it.readLines().forEach { line ->
+                    if (line.trim().isNotEmpty()) {
+                      tipsLocal.add(line.trim())
+                    }
+                  }
+                }
+              }
+              tipsLocal
+            }
+            val lastTipTime = propStore.lastTipTime.first()
+            val lastTipIndex = propStore.lastTipIndex.first()
+            val now = Clock.System.now()
+            if (tips.getOrNull(lastTipIndex) == null || now.minus(if (BuildConfig.DEBUG) { 60.seconds } else { 1.days }).minus(lastTipTime).isPositive()) {
+              // coolTime done
+              if (tips.size <= 0) {
+                // no tips
+                propStore.setLastTipIndex(-1)
+                uiModel.setTipString("")
+              } else {
+                // tip
+                val randomIndex = Random.nextInt(tips.size)
+                val tip = tips[randomIndex]
+                uiModel.setTipString(tip)
+                propStore.setLastTipIndex(randomIndex)
+              }
+              propStore.setLastTipTime(now)
+            } else {
+              if (uiModel.tipString.value.isEmpty()) {
+                uiModel.setTipString(tips.getOrElse(lastTipIndex) { "" })
+              }
+            }
+          }
+        }
+        launch {
+          uiModel.tipString.collect { tip ->
+            if (tip.isEmpty()) {
+              return@collect
+            }
+            val context = this@MainCompose
+            val channelId = "tip_noti_channel"
+            val channel = NotificationManagerCompat.from(context).apply {
+              createNotificationChannel(NotificationChannelCompat.Builder(
+                channelId,
+                NotificationManager.IMPORTANCE_LOW,
+              ).apply {
+                setName(context.getString(R.string.tip_noti_deliver_channel_title))
+                setDescription(context.getString(R.string.tip_noti_deliver_channel_description))
+                setVibrationEnabled(false)
+                setShowBadge(false)
+              }.build())
+            }
+            val builder = NotificationCompat.Builder(context, channelId).apply {
+              setSmallIcon(IconCompat.createWithResource(context, R.drawable.ic_idea))
+              setContentTitle(context.getString(R.string.tip_noti_deliver_title))
+              setContentText(tip)
+              priority = NotificationCompat.PRIORITY_LOW
+              setDefaults(NotificationCompat.DEFAULT_ALL)
+            }
+            NotificationManagerCompat.from(context).notify(12000, builder.build())
           }
         }
         loadedAll = true

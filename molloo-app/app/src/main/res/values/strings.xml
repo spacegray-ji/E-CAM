@@ -44,6 +44,7 @@
     <string name="tab_home">Home</string>
     <string name="tab_photo">Capture History</string>
     <string name="tab_care">Care History</string>
+    <string name="tab_settings">Settings</string>
     <!-- MainCompose - Photo Tab -->
     <string name="card_photo_state">Teeth State: %s</string>
     <string name="card_photo_delete_fail">Delete failed! Please try again later.</string>
@@ -62,15 +63,22 @@
     <string name="card_care_title">Add care history</string>
     <string name="card_care_description">Add care history for better teeth management.</string>
     <string name="care_feature_none">None</string>
+    <!-- MainCompose - Settings Tab -->
+    <string name="card_user_change_guide">You can change user either right button or user icon of actionbar.</string>
+    <string name="card_info_title">Molloo App %s</string>
+    <string name="card_info_description">Culminating Project for University.</string>
+    <string name="github_link" translatable="false">https://github.com/craftingmod/molloo</string>
 
     <!-- Care Reminder Broadcast -->
     <string name="care_reminder_noti_channel_title">Dental Care Reminder</string>
     <string name="care_reminder_noti_channel_description">Reminds Notification of Dental Care.</string>
-    <string name="care_reminder_noti_close_title">The day of %s dental care is coming.</string>
-    <string name="care_reminder_noti_close_description">%d days left. Don\'t forget and prepare your dental care! 👍</string>
-    <string name="care_reminder_noti_title">Today is the day of %s dental care.</string>
-    <string name="care_reminder_noti_description">Please go to dental today and don\'t forget that. 😊</string>
-
+    <string name="care_reminder_noti_close_title">%s\'s %s dental care day is coming.</string>
+    <string name="care_reminder_noti_close_description">Hey %s, %d days left. Don\'t forget and prepare your dental care! 👍</string>
+    <string name="care_reminder_noti_title">Today is %s\'s %s dental care day.</string>
+    <string name="care_reminder_noti_description">Hey %s, Please go to dental today and don\'t forget that. 😊</string>
+    <string name="tip_noti_deliver_channel_title">Everyday tip</string>
+    <string name="tip_noti_deliver_channel_description">Some tips for your teeth health.</string>
+    <string name="tip_noti_deliver_title">Today\'s teeth tip</string>
 
 
     <!-- Generic -->
@@ -78,6 +86,8 @@
     <string name="set">Set</string>
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
+    <string name="user">User</string>
+    <string name="switch_user">Switch</string>
     <string name="cavity_state_0">Good</string>
     <string name="cavity_state_1">Take Care</string>
     <string name="cavity_state_2">Bad</string>

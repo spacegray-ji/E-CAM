@@ -41,7 +41,7 @@ import java.time.format.FormatStyle
 
 @Composable
 fun PhotoInfoCard(photoInfo: PhotoInfo, modifier: Modifier = Modifier, cardIndex:Int = -1, isPreview:Boolean = false, onClick:(clickType:ClickType) -> Unit = {}) {
-  Card(
+  ElevatedCard(
     modifier = modifier.padding(vertical = 16.dp),
     onClick = { onClick(ClickType.CARD) },
   ) {

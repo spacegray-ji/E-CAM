@@ -103,6 +103,7 @@ fun DentalInfoCardPreview() {
     DentalHistory(
       id = 0,
       reason = "Scaling",
+      username = "Test",
       careDate = Clock.System.now(),
       nextCareDate = Clock.System.now().plus(180.days),
     )

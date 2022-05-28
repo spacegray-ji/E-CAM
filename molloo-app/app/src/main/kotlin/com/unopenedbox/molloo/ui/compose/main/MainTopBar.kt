@@ -27,18 +27,20 @@ fun MainTopBar(
   CenterAlignedTopAppBar(
     title = { Text(text = user.name, fontSize = 18.sp, color = MaterialTheme.colorScheme.inverseOnSurface) },
     navigationIcon = {
-      Image(
+      Icon(
         painter = painterResource(id = user.profileImage),
         contentDescription = "${user.name} Profile",
         modifier = Modifier
           .padding(start = 16.dp, end = 8.dp)
-          .size(48.dp)
+          .size(36.dp)
           .clickable {
             onListUserClicked()
-          }
+          },
+        tint = MaterialTheme.colorScheme.inverseOnSurface,
       )
     },
     actions = {
+      /*
       Row(
         modifier = Modifier.padding(start=8.dp, end=8.dp),
         horizontalArrangement = Arrangement.End,
@@ -58,6 +60,7 @@ fun MainTopBar(
           },
         )
       }
+       */
     },
     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
       containerColor = MaterialTheme.colorScheme.surfaceTint,

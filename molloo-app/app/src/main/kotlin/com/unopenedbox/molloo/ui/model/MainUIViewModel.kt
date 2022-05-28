@@ -48,10 +48,25 @@ class MainUIViewModel : ViewModel() {
     _isDentalDialogShowing.value = isShowing
   }
 
+  // Dental Edit Position
   private val _dentalDialogEditPosition = MutableStateFlow(-1)
   val dentalDialogEditPosition = _dentalDialogEditPosition.asStateFlow()
   fun setDentalDialogEditPosition(position: Int) {
     _dentalDialogEditPosition.value = position
+  }
+
+  // User Edit Dialog Showing
+  private val _isUserEditDialogShowing = MutableStateFlow(false)
+  val isUserEditDialogShowing = _isUserEditDialogShowing.asStateFlow()
+  fun setIsUserEditDialogShowing(isShowing: Boolean) {
+    _isUserEditDialogShowing.value = isShowing
+  }
+
+  // Current Tip
+  private val _tipString = MutableStateFlow("")
+  val tipString = _tipString.asStateFlow()
+  fun setTipString(tip: String) {
+    _tipString.value = tip
   }
 
   private val _titleInputFlow = MutableStateFlow("")

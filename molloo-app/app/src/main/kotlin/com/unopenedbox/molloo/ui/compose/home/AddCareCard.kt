@@ -60,7 +60,7 @@ fun AddCareCard(modifier: Modifier = Modifier, isOutline:Boolean = true, onClick
       drawColumn()
     }
   } else {
-    Card(
+    ElevatedCard(
       modifier = modifier,
       onClick = {
         onClick()

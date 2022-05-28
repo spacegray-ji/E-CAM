@@ -8,6 +8,7 @@ import com.unopenedbox.molloo.struct.DentalHistory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.datetime.Instant
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -23,6 +24,8 @@ class PropStore(private val propStore:DataStore<Preferences>) {
     private val usernameKey = stringPreferencesKey("username")
     private val usernameListKey = stringPreferencesKey("usernameList")
     private val dentalHistoryListKey = stringPreferencesKey("dentalHistoryList")
+    private val lastTipTimeKey = longPreferencesKey("lastTipTime")
+    private val lastTipIndexKey = intPreferencesKey("lastTipIndex")
 
     val deviceSerial: Flow<String> = propStore.data.map { preferences ->
         preferences[deviceSerialKey] ?: ""
@@ -49,6 +52,17 @@ class PropStore(private val propStore:DataStore<Preferences>) {
             Json.decodeFromString(ListSerializer(DentalHistory.serializer()), str)
         } ?: listOf()
     }
+
+    val lastTipTime: Flow<Instant> = propStore.data.map { pref ->
+        pref[lastTipTimeKey]?.let {
+            Instant.fromEpochMilliseconds(it)
+        } ?: Instant.DISTANT_PAST
+    }
+
+    val lastTipIndex: Flow<Int> = propStore.data.map { pref ->
+        pref[lastTipIndexKey] ?: 0
+    }
+
 
     suspend fun setDeviceSerial(serial: String) {
         propStore.edit { pref ->
@@ -83,6 +97,18 @@ class PropStore(private val propStore:DataStore<Preferences>) {
     suspend fun setDentalHistoryList(dentalHistoryList: List<DentalHistory>) {
         propStore.edit { pref ->
             pref[dentalHistoryListKey] = Json.encodeToString(ListSerializer(DentalHistory.serializer()), dentalHistoryList)
+        }
+    }
+
+    suspend fun setLastTipTime(time: Instant) {
+        propStore.edit { pref ->
+            pref[lastTipTimeKey] = time.toEpochMilliseconds()
+        }
+    }
+
+    suspend fun setLastTipIndex(index: Int) {
+        propStore.edit { pref ->
+            pref[lastTipIndexKey] = index
         }
     }
 }

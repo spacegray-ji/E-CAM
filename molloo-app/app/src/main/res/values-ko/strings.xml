@@ -32,18 +32,19 @@
     <string name="dialog_add_cam_title">E-Cam 장치 설정</string>
     <string name="dialog_add_cam_desc">E-Cam의 시리얼 번호를 입력해 주세요.</string>
     <string name="dialog_add_cam_hint">E-Cam 시리얼 번호</string>
-    <string name="dialog_sel_user_title">사용자 선택</string>
+    <string name="dialog_sel_user_title">사용자 변경</string>
     <string name="card_ecam_connected">E-Cam이 연결되었습니다</string>
     <string name="card_ecam_serial">고유 번호: %s</string>
-    <string name="card_ecam_suggestcapture">이제 E-Cam으로 치아를 진단하실 수 있습니다. 밑의 촬영 버튼을 눌러 시작해 보세요.</string>
+    <string name="card_ecam_suggestcapture">이제 E-Cam으로 치아를 진단하실 수 있습니다.\n홈에서 E-CAM으로 촬영하기 버튼을 눌러 시작하세요.</string>
     <string name="card_ecam_capture_title">E-CAM으로 촬영하기</string>
-    <string name="card_ecam_capture_desc">E-CAM의 카메라를 들고 이 버튼을 눌러 시작할 수 있어요.</string>
+    <string name="card_ecam_capture_desc">촬영 기록을 남기고 치아를 진단하기 위해\nE-CAM과 함께 이 버튼을 눌러 시작해 보세요.</string>
     <string name="toast_ecam_request_success">성공! 진행을 위해서 E-CAM 화면을 봐주세요.</string>
     <string name="toast_ecam_request_fail">무엇인가 잘못되었어요! 잠시 후 다시 시도해 주세요.</string>
     <!-- MainCompose - Tab -->
     <string name="tab_home">홈</string>
     <string name="tab_photo">촬영 기록</string>
     <string name="tab_care">검진 기록</string>
+    <string name="tab_settings">설정</string>
     <!-- MainCompose - Photo Tab -->
     <string name="card_photo_state">치아 상태: %s</string>
     <string name="card_photo_delete_fail">삭제에 실패했습니다. 나중에 다시 시도해주세요.</string>
@@ -62,14 +63,21 @@
     <string name="card_care_title">검진 기록 추가</string>
     <string name="card_care_description">검진 기록을 추가해주시면 다음 검진일 날 알려드려요.</string>
     <string name="care_feature_none">없음</string>
+    <!-- MainCompose - Settings Tab -->
+    <string name="card_user_change_guide">사용자를 오른쪽의 버튼 혹은 액션바 왼쪽의 아이콘을 눌러 바꿀 수 있습니다.</string>
+    <string name="card_info_title">Molloo 앱 %s</string>
+    <string name="card_info_description">졸업작품</string>
 
     <!-- Care Reminder Broadcast -->
     <string name="care_reminder_noti_channel_title">검진 예약 알림</string>
     <string name="care_reminder_noti_channel_description">다음 검진일이 올 시에 알림으로 알려줍니다.</string>
-    <string name="care_reminder_noti_close_title">%s 검진일이 다가오고 있어요.</string>
-    <string name="care_reminder_noti_close_description">검진일이 %d일 남았어요. 다가오는 검진일을 준비해주세요.</string>
-    <string name="care_reminder_noti_title">오늘은 %s 검진을 받는 날이에요.</string>
-    <string name="care_reminder_noti_description">오늘 잊지 말고 병원에 가서 검진을 받아보세요. 😊</string>
+    <string name="care_reminder_noti_close_title">%s분의 %s 검진일이 다가오고 있어요.</string>
+    <string name="care_reminder_noti_close_description">%님의 검진일이 %d일 남았어요. 다가오는 검진일을 준비해주세요.</string>
+    <string name="care_reminder_noti_title">오늘은 %s분이 %s 검진을 받는 날이에요.</string>
+    <string name="care_reminder_noti_description">%s님, 오늘 잊지 말고 병원에 가서 검진을 받아보세요. 😊</string>
+    <string name="tip_noti_deliver_channel_title">매일매일 팁</string>
+    <string name="tip_noti_deliver_channel_description">치아를 위한 리빙포인트.</string>
+    <string name="tip_noti_deliver_title">오늘의 치아 팁이 도착했어요.</string>
 
 
 
@@ -79,6 +87,8 @@
     <string name="set">설정</string>
     <string name="cancel">취소</string>
     <string name="ok">확인</string>
+    <string name="user">사용자</string>
+    <string name="switch_user">변경</string>
     <string name="cavity_state_0">양호</string>
     <string name="cavity_state_1">충치 의심</string>
     <string name="cavity_state_2">충치 위험</string>
