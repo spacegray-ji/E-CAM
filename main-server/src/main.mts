@@ -22,7 +22,6 @@ import SocketIO, { Server } from "socket.io"
 import EventEmitter from "events"
 import sharp from "sharp"
 import Debug from "debug"
-import e from "express"
 
 const debug = Debug("molloo:main_server")
 
