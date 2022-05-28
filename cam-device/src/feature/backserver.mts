@@ -3,7 +3,7 @@ import Debug from "debug"
 import chalk, { Chalk } from "chalk"
 import Path from "node:path"
 import { myOS, OSType } from "../struct/ostype.mjs"
-import { cameraName, githubURL, mainServerHost, streamingPort } from "../struct/conf.mjs"
+import { cameraName, githubURL, mainServerHost, streamingPort, useWebRTC } from "../struct/conf.mjs"
 import { ensureCameraToken, MainServerResp, TokenObj } from "../mainreq.mjs"
 import multer from "multer"
 import FormData from "form-data"
@@ -61,6 +61,11 @@ export class BackServer {
     this.expressApp.get("/api/cameraPort", (req, res) => {
       res.json({
         port: streamingPort,
+      })
+    })
+    this.expressApp.get("/api/usewebrtc", (req, res) => {
+      res.json({
+        usewebrtc: useWebRTC,
       })
     })
     // upload photo

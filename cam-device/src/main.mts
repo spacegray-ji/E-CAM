@@ -5,7 +5,7 @@ import got from "got"
 import { spawn } from "node:child_process"
 import chalk from "chalk"
 import { BackServer } from "./feature/backserver.mjs"
-import { camLedPin, expressPort, redBtnPin, wsPort } from "./struct/conf.mjs"
+import { camLedPin, expressPort, redBtnPin, useWebRTC, wsPort } from "./struct/conf.mjs"
 import { WSServer } from "./feature/wsserver.mjs"
 import { GPIORecv } from "./feature/gpiorecv.mjs"
 import Debug from "debug"
@@ -41,10 +41,12 @@ async function main() {
   }
 
   // WebRTC-Streamer
-  const isStreamReady = await checkStreamer()
-  if (!isStreamReady) {
-    console.error(chalk.red(`WebRTC-Streamer cannot work. Please report to developer with logs.`))
-    process.exit(1)
+  if (useWebRTC) {
+    const isStreamReady = await checkStreamer()
+    if (!isStreamReady) {
+      console.error(chalk.red(`WebRTC-Streamer cannot work. Please report to developer with logs.`))
+      process.exit(1)
+    }
   }
 
   // Express Server

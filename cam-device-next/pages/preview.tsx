@@ -140,13 +140,22 @@ const FullScreenImagePreview = styled.div<{ image: string | null }>`
 type PropType = {
   streamServer: string,
   sCameraName: string,
+  useLocalCam: boolean,
 }
 
 export const getStaticProps:GetStaticProps = async (context) => {
-  const cameraName = (await (await fetch(`http://127.0.0.1:${nextjsPort}/api/camera/primarydevice`)).json()).name ?? ""
+  const getJson = (url: string) => {
+    return fetch(url).then(res => res.json())
+  }
+  const srvUrl = `http://127.0.0.1:${nextjsPort}`
+  const cameraName = (await getJson(`${srvUrl}/local/api/cameraName`)).name as string | null ?? ""
+  const cameraPort = (await getJson(`${srvUrl}/local/api/cameraPort`)).port as number | null ?? -1
+  const useWebRTC = (await getJson(`${srvUrl}/local/api/usewebrtc`)).usewebrtc as boolean | null ?? false
+
   const prop:PropType = {
-    streamServer: `http://0.0.0.0:${streamingPort}`,
+    streamServer: `http://0.0.0.0:${cameraPort}`,
     sCameraName: cameraName,
+    useLocalCam: !useWebRTC,
   }
   return {
     props: prop
@@ -326,7 +335,7 @@ const App = (props:PropType) => {
       ) : (
         <Camera
           ref={camera}
-          streamServerUrl={streamServer}
+          streamServerUrl={props.useLocalCam ? "" : streamServer}
           cameraDeviceName={props.sCameraName}
           aspectRatio="cover"
           numberOfCamerasCallback={setNumberOfCameras}

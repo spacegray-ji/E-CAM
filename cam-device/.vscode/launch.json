@@ -2,16 +2,17 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch via ts-node (CJS only)",
+      "name": "Launch via ts-node",
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "node",
       "runtimeArgs": [
+        "--nolazy",
         "--loader",
-        "ts-node/register/transpile-only"
+        "ts-node/esm",
       ],
       "args": [
-        "src/main.ts",
+        "src/main.mts",
         "--debug",
       ],
       "cwd": "${workspaceRoot}",
