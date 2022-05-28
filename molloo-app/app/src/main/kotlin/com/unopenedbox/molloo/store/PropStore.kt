@@ -4,9 +4,13 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
+import com.unopenedbox.molloo.struct.DentalHistory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import java.io.IOException
 
 val Context.prefStore: DataStore<Preferences> by preferencesDataStore(name = "app_pref")
@@ -18,6 +22,7 @@ class PropStore(private val propStore:DataStore<Preferences>) {
     private val firstUseKey = booleanPreferencesKey("first_use")
     private val usernameKey = stringPreferencesKey("username")
     private val usernameListKey = stringPreferencesKey("usernameList")
+    private val dentalHistoryListKey = stringPreferencesKey("dentalHistoryList")
 
     val deviceSerial: Flow<String> = propStore.data.map { preferences ->
         preferences[deviceSerialKey] ?: ""
@@ -37,6 +42,12 @@ class PropStore(private val propStore:DataStore<Preferences>) {
 
     val usernameList: Flow<List<String>> = propStore.data.map { preferences ->
         preferences[usernameListKey]?.split(",") ?: listOf("Default")
+    }
+
+    val dentalHistoryList: Flow<List<DentalHistory>> = propStore.data.map { pref ->
+        pref[dentalHistoryListKey]?.let { str ->
+            Json.decodeFromString(ListSerializer(DentalHistory.serializer()), str)
+        } ?: listOf()
     }
 
     suspend fun setDeviceSerial(serial: String) {
@@ -66,6 +77,12 @@ class PropStore(private val propStore:DataStore<Preferences>) {
     suspend fun setUsernameList(usernameList: List<String>) {
         propStore.edit { pref ->
             pref[usernameListKey] = usernameList.joinToString(",")
+        }
+    }
+
+    suspend fun setDentalHistoryList(dentalHistoryList: List<DentalHistory>) {
+        propStore.edit { pref ->
+            pref[dentalHistoryListKey] = Json.encodeToString(ListSerializer(DentalHistory.serializer()), dentalHistoryList)
         }
     }
 }

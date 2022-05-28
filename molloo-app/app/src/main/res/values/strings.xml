@@ -32,6 +32,7 @@
     <string name="dialog_add_cam_desc">Please input E-Cam\'s serial.</string>
     <string name="dialog_add_cam_hint">Serial of E-Cam</string>
     <string name="dialog_sel_user_title">Select User</string>
+    <!-- MainCompose - Ecam -->
     <string name="card_ecam_connected">E-Cam is connected</string>
     <string name="card_ecam_serial">Serial: %s</string>
     <string name="card_ecam_suggestcapture">Now you can check your teeth with capture button. Please look under button.</string>
@@ -39,10 +40,37 @@
     <string name="card_ecam_capture_desc">Hold E-CAM\'s camera and press this button to start.</string>
     <string name="toast_ecam_request_success">Success! Check E-CAM screen to future progression!</string>
     <string name="toast_ecam_request_fail">Something went wrong! Please try again at later.</string>
+    <!-- MainCompose - Tab -->
     <string name="tab_home">Home</string>
-    <string name="tab_photo">History</string>
+    <string name="tab_photo">Capture History</string>
+    <string name="tab_care">Care History</string>
+    <!-- MainCompose - Photo Tab -->
     <string name="card_photo_state">Teeth State: %s</string>
     <string name="card_photo_delete_fail">Delete failed! Please try again later.</string>
+    <!-- MainCompose - Care Tab -->
+    <string name="care_date_format">Care Date: %s</string>
+    <string name="care_next_date">Next Care Date</string>
+    <string name="care_next_date_format">Next Care: %s</string>
+    <string name="dialog_care_title">Memo Dental Care</string>
+    <string name="dialog_care_desc">Write what and when you went to dental care</string>
+    <string name="dialog_care_type_placeholder">Type of care</string>
+    <string name="dialog_care_next_select_manual">Select manually</string>
+    <string name="care_weeks">After %d week%s</string>
+    <string name="care_months">After %d month%s</string>
+    <string name="care_years">After %d year%s</string>
+    <string name="care_postfix_ss">s</string>
+    <string name="card_care_title">Add care history</string>
+    <string name="card_care_description">Add care history for better teeth management.</string>
+    <string name="care_feature_none">None</string>
+
+    <!-- Care Reminder Broadcast -->
+    <string name="care_reminder_noti_channel_title">Dental Care Reminder</string>
+    <string name="care_reminder_noti_channel_description">Reminds Notification of Dental Care.</string>
+    <string name="care_reminder_noti_close_title">The day of %s dental care is coming.</string>
+    <string name="care_reminder_noti_close_description">%d days left. Don\'t forget and prepare your dental care! 👍</string>
+    <string name="care_reminder_noti_title">Today is the day of %s dental care.</string>
+    <string name="care_reminder_noti_description">Please go to dental today and don\'t forget that. 😊</string>
+
 
 
     <!-- Generic -->
@@ -54,4 +82,6 @@
     <string name="cavity_state_1">Take Care</string>
     <string name="cavity_state_2">Bad</string>
     <string name="cavity_state_unknown">Unknown</string>
+    <string name="format_yyyymmdd">MMMM dd, yyyy</string>
+    <string name="care_type_default">Teeth</string>
 </resources>

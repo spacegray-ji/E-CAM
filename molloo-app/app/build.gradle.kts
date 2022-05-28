@@ -6,7 +6,7 @@ plugins {
     kotlin("plugin.serialization") version Versions.kotlin
 }
 
-val ingrements = 4
+val ingrements = 7
 
 android {
     compileSdk = Apps.compileSdk
@@ -88,6 +88,10 @@ dependencies {
     Libs.AndroidX_Compose::class.memberProperties.forEach {
         implementation(it.getter.call() as String)
     }
+    // Accompanist
+    Libs.Accompanist::class.memberProperties.forEach {
+        implementation(it.getter.call() as String)
+    }
     // Google Material
     implementation(Libs.google_material)
     // OneUI Design
@@ -105,6 +109,10 @@ dependencies {
     }
     // Material-Dialog
     Libs.MaterialDialog::class.memberProperties.forEach {
+        implementation(it.getter.call() as String)
+    }
+    // Compose Dialog
+    Libs.ComposeDialog::class.memberProperties.forEach {
         implementation(it.getter.call() as String)
     }
 

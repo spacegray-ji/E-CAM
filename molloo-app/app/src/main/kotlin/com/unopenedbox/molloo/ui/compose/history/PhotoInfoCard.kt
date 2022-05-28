@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.unopenedbox.molloo.ui.compose
+package com.unopenedbox.molloo.ui.compose.history
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -30,6 +30,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.skydoves.landscapist.glide.GlideImage
+import com.unopenedbox.molloo.BuildConfig
 import com.unopenedbox.molloo.R
 import com.unopenedbox.molloo.struct.PhotoInfo
 import kotlinx.datetime.*
@@ -39,7 +40,7 @@ import java.time.format.FormatStyle
 
 
 @Composable
-fun PhotoInfoCard(photoInfo: PhotoInfo, modifier: Modifier = Modifier, isPreview:Boolean = false, onClick:(clickType:ClickType) -> Unit = {}) {
+fun PhotoInfoCard(photoInfo: PhotoInfo, modifier: Modifier = Modifier, cardIndex:Int = -1, isPreview:Boolean = false, onClick:(clickType:ClickType) -> Unit = {}) {
   Card(
     modifier = modifier.padding(vertical = 16.dp),
     onClick = { onClick(ClickType.CARD) },
@@ -98,11 +99,20 @@ fun PhotoInfoCard(photoInfo: PhotoInfo, modifier: Modifier = Modifier, isPreview
         modifier = Modifier.fillMaxWidth(),
       ) {
         val localCreatedAt = photoInfo.createdAt.toLocalDateTime(TimeZone.currentSystemDefault()).toJavaLocalDateTime()
-        Text(
-          text = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).format(localCreatedAt),
-          style = MaterialTheme.typography.bodyMedium,
-          modifier = Modifier.align(Alignment.Bottom),
-        )
+        Column(
+          modifier = Modifier.align(Alignment.CenterVertically),
+        ) {
+          if (cardIndex >= 0 && BuildConfig.DEBUG) {
+            Text(
+              text = cardIndex.toString(),
+              style = MaterialTheme.typography.bodyMedium,
+            )
+          }
+          Text(
+            text = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).format(localCreatedAt),
+            style = MaterialTheme.typography.bodyMedium,
+          )
+        }
         Spacer(Modifier.weight(1f))
         IconButton(
           onClick = { onClick(ClickType.REMOVE) }
@@ -129,6 +139,7 @@ fun PhotoInfoCardPreview() {
       createdAt = Clock.System.now(),
       cavityLevel = 0,
     ),
+    cardIndex = 100,
     modifier = Modifier,
     isPreview = true,
   )

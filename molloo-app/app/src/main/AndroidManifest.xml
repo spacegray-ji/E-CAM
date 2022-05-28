@@ -30,6 +30,7 @@
             android:name=".MollooAppIntro"
             android:label="@string/app_intro_act_title"
             android:theme="@style/Theme.Molloo.Intro" />
+        <receiver android:name=".receiver.CareRemindReceiver" android:exported="true" />
     </application>
 
 </manifest>

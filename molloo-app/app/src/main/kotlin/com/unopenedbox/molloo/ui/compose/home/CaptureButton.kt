@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.unopenedbox.molloo.ui.compose
+package com.unopenedbox.molloo.ui.compose.home
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes

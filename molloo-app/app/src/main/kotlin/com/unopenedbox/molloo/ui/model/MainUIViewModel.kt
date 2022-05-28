@@ -3,6 +3,7 @@ package com.unopenedbox.molloo.ui.model
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.datetime.*
 
 class MainUIViewModel : ViewModel() {
   // Show cam dialog
@@ -33,7 +34,25 @@ class MainUIViewModel : ViewModel() {
     _selectedTab.value = tab
   }
 
+  // is Refreshing
+  private val _isRefreshing = MutableStateFlow(false)
+  val isRefreshing = _isRefreshing.asStateFlow()
+  fun setIsRefreshing(isRefreshing: Boolean) {
+    _isRefreshing.value = isRefreshing
+  }
 
+  // Dental Dialog Showing
+  private val _isDentalDialogShowing = MutableStateFlow(false)
+  val isDentalDialogShowing = _isDentalDialogShowing.asStateFlow()
+  fun setIsDentalDialogShowing(isShowing: Boolean) {
+    _isDentalDialogShowing.value = isShowing
+  }
+
+  private val _dentalDialogEditPosition = MutableStateFlow(-1)
+  val dentalDialogEditPosition = _dentalDialogEditPosition.asStateFlow()
+  fun setDentalDialogEditPosition(position: Int) {
+    _dentalDialogEditPosition.value = position
+  }
 
   private val _titleInputFlow = MutableStateFlow("")
   val titleInputFlow = _titleInputFlow.asStateFlow()

@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.unopenedbox.molloo.ui.compose
+package com.unopenedbox.molloo.ui.compose.home
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -21,7 +21,7 @@ import com.unopenedbox.molloo.R
 
 
 @Composable
-fun AddCamButton(onClick:() -> Unit, modifier: Modifier = Modifier) {
+fun CaptureButtonSingle(onClick:() -> Unit, modifier: Modifier = Modifier) {
   Card(
     onClick = onClick,
   ) {
@@ -32,20 +32,20 @@ fun AddCamButton(onClick:() -> Unit, modifier: Modifier = Modifier) {
         .padding(all = 20.dp),
     ) {
       Image(
-        painter = painterResource(id = R.drawable.ic_webcam),
-        contentDescription = "Camera Icon",
+        painter = painterResource(id = R.drawable.ic_screenshot),
+        contentDescription = "Screenshot Icon",
         modifier = Modifier.size(80.dp)
       )
       Column(
         modifier = Modifier.padding(start = 20.dp),
       ) {
         Text(
-          text = stringResource(id = R.string.add_cam_device_title),
-          style = MaterialTheme.typography.titleMedium,
+          text = stringResource(id = R.string.card_ecam_capture_title),
+          style = MaterialTheme.typography.titleLarge,
         )
         Spacer(modifier = Modifier.height(10.dp))
         Text(
-          text = stringResource(id = R.string.add_cam_device_desc),
+          text = stringResource(id = R.string.card_ecam_capture_desc),
           style = MaterialTheme.typography.bodyMedium,
         )
       }
@@ -55,8 +55,8 @@ fun AddCamButton(onClick:() -> Unit, modifier: Modifier = Modifier) {
 
 @Preview(showBackground = true)
 @Composable
-fun AddCamPreview() {
-  AddCamButton(
+fun CaptureButtonSinglePreview() {
+  CaptureButtonSingle(
     {}
   )
 }

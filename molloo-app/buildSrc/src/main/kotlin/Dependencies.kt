@@ -12,11 +12,15 @@ object Versions {
         const val lifecycle = "2.5.0-beta01"
         const val activity = "1.5.0-beta01"
         const val fragment = "1.4.1"
-        const val compose_material3 = "1.0.0-alpha10"
-        const val compose = "1.2.0-alpha08"
+        const val compose_material3 = "1.0.0-alpha11"
+        const val compose = "1.2.0-beta02"
         const val navigation = "2.5.0-beta01"
         const val paging3 = "3.1.1"
         const val paging3_compose = "1.0.0-alpha14"
+    }
+
+    object Accompanist {
+        const val general = "0.24.9-beta"
     }
 
     object Kotlin {
@@ -32,6 +36,7 @@ object Versions {
     const val fuel = "2.3.1"
     const val material_dialog = "3.3.0"
     const val landscapist = "1.5.2"
+    const val composeDialog = "0.8.0-beta"
 
     const val junit = "4.12"
 }
@@ -68,6 +73,9 @@ object Libs {
         const val foundation = "androidx.compose.foundation:foundation:${Versions.AndroidX.compose}"
         const val paging3_compose = "androidx.paging:paging-compose:${Versions.AndroidX.paging3_compose}"
     }
+    object Accompanist {
+        const val swipeRefresh = "com.google.accompanist:accompanist-swiperefresh:${Versions.Accompanist.general}"
+    }
 
     object Kotlin {
         const val stdlib = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${Versions.kotlin}"
@@ -95,6 +103,11 @@ object Libs {
         const val core = "com.afollestad.material-dialogs:core:${Versions.material_dialog}"
         const val input = "com.afollestad.material-dialogs:input:${Versions.material_dialog}"
         const val lifecycle = "com.afollestad.material-dialogs:lifecycle:${Versions.material_dialog}"
+    }
+
+    object ComposeDialog {
+        const val core = "io.github.vanpra.compose-material-dialogs:core:${Versions.composeDialog}"
+        const val timePicker = "io.github.vanpra.compose-material-dialogs:datetime:${Versions.composeDialog}"
     }
 }
 

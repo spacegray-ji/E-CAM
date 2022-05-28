@@ -1,4 +1,4 @@
-package com.unopenedbox.molloo.ui.compose
+package com.unopenedbox.molloo.ui.compose.main
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column

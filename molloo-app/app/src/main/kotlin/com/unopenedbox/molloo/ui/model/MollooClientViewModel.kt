@@ -12,6 +12,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.unopenedbox.molloo.network.MollooRequest
 import com.unopenedbox.molloo.store.PropStore
+import com.unopenedbox.molloo.struct.DentalHistory
 import com.unopenedbox.molloo.struct.PhotoInfo
 import com.unopenedbox.molloo.struct.photo.PhotoPagingSource
 import com.unopenedbox.molloo.struct.photo.PhotoPagingSource2
@@ -53,18 +54,27 @@ class MollooClientViewModel : ViewModel() {
         _username.value = username
     }
     // PhotoFlow
+    var photoPagingSource2: PhotoPagingSource2? = null
     @OptIn(ExperimentalCoroutinesApi::class)
     val photoItemFlow = camToken.flatMapLatest { token ->
         Log.d("PhotoItemFlow", "Token: $token")
         Pager(
-            config = PagingConfig(pageSize = 10),
+            config = PagingConfig(pageSize = 10, enablePlaceholders = true, initialLoadSize = 10),
             pagingSourceFactory = {
                 PhotoPagingSource2(
                     request,
                     token,
-                )
+                ).also {
+                    photoPagingSource2 = it
+                }
             }
         ).flow.cachedIn(viewModelScope)
+    }
+    // Dental List
+    private val _dentalList = MutableStateFlow(emptyList<DentalHistory>())
+    val dentalList = _dentalList.asStateFlow()
+    fun setDentalList(dentalList: List<DentalHistory>) {
+        _dentalList.value = dentalList
     }
 
     init {

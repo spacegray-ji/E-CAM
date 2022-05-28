@@ -51,4 +51,7 @@
     <!-- Dialog -->
     <style name="MaterialDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog.Centered" />
 
+    <style name="CalenderViewCustom" parent="ThemeOverlay.Material3.MaterialCalendar">
+    </style>
+
 </resources>

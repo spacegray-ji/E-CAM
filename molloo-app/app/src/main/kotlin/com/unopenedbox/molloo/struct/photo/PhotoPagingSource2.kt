@@ -1,5 +1,6 @@
 package com.unopenedbox.molloo.struct.photo
 
+import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.unopenedbox.molloo.network.MollooRequest
@@ -12,6 +13,7 @@ class PhotoPagingSource2(
 ) : PagingSource<Int, PhotoInfo>() {
   override suspend fun load(params: LoadParams<Int>): LoadResult<Int, PhotoInfo> {
     val page = params.key ?: 1
+    Log.d("PhotoPagingSource2", "Page: $page, loadSize: ${params.loadSize}")
     return try {
       val items = request.fetchPhotos(
         token,
