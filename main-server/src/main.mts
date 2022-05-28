@@ -12,7 +12,7 @@ import { simpleResponse, responseError, responseJSON, oneDay, connectDB, asArray
 import { GeneralResponse, Status } from "./general-resp.mjs"
 import short from "short-uuid"
 import { UserInfo } from "./structure/user-info.mjs"
-import { BasicPhotoInfo, PhotoInfo, DBPhotoInfo, PhotoModelRes, PhotoModelSingle, PhotoRes } from "./structure/photo-info.mjs"
+import { BasicPhotoInfo, PhotoInfo, DBPhotoInfo, PhotoModelRes, PhotoModelSingle, PhotoRes, DeterminePhotoInfo } from "./structure/photo-info.mjs"
 import got from "got"
 import chalk from "chalk"
 import { FormData, File } from "formdata-node"
@@ -22,6 +22,7 @@ import SocketIO, { Server } from "socket.io"
 import EventEmitter from "events"
 import sharp from "sharp"
 import Debug from "debug"
+import Path from "path"
 
 const debug = Debug("molloo:main_server")
 
@@ -195,6 +196,9 @@ async function registerPhoto(exp: Express, db: Db) {
 
   app.use("/photo/static/", express.static("./photos"))
   exp.put("/photo", async (req, res) => {
+    const log = (str: string) => {
+      logREST("PUT", "/photo", str)
+    }
     // paramter check
     const token = getQueryParam<string>(req.body.token, "")
 
@@ -218,8 +222,10 @@ async function registerPhoto(exp: Express, db: Db) {
       responseError(res, Status.FORBIDDEN, "Too many photos.")
       return
     }
+    // Log
+    log(`Photo upload from ${chalk.yellow(user.serial)} (${chalk.cyan(user.username)})`)
     // check fields
-    const basicPhotos: BasicPhotoInfo[] = []
+    const basicPhotos: DeterminePhotoInfo[] = []
     for (const photo of photos) {
       // check size
       if (photo.size >= 10 * oneMiB) {
@@ -228,21 +234,41 @@ async function registerPhoto(exp: Express, db: Db) {
       }
       try {
         const photoData = await fsp.readFile(photo.tempFilePath)
-        const image = await sharp(photoData).jpeg({
-          mozjpeg: true
-        }).toBuffer()
+        // Image sharp
+        const image = sharp(photoData)
+        // Metadata
+        const metadata = await image.metadata()
+        if (metadata.width == null || metadata.height == null) {
+          log(`Photo metadata not found!!`)
+          continue
+        }
+        if (metadata.width <= 224 && metadata.height <= 224) {
+          log(`Photo is too small!!`)
+          continue
+        }
 
         // generate id
         const imageId = createID()
         // generate filename
         const filename = `${imageId}.jpg`
-        await fsp.writeFile(`./photos/${filename}`, image)
+
+        // Crop center
+        const squareSize = Math.floor(Math.max(1, Math.max(metadata.width, metadata.height) / 1280) * 224)
+        const cropExport = await image.extract({
+          left: Math.floor((metadata.width - squareSize) / 2),
+          top: Math.floor((metadata.height - squareSize) / 2),
+          width: squareSize,
+          height: squareSize,
+        }).resize(224, 224).toFile(Path.resolve(".", "tmp", filename))
+        // Just JPEG Image
+        const imageJPEG = await image.toFile(Path.resolve(".", "photos", filename))
 
         // push info
-        const pInfo: BasicPhotoInfo = {
+        const pInfo: DeterminePhotoInfo = {
           id: imageId,
           user,
           filename,
+          determinePath: Path.resolve(".", "tmp", filename),
           createdAt: new Date(Date.now()),
         }
         basicPhotos.push(pInfo)
@@ -257,7 +283,7 @@ async function registerPhoto(exp: Express, db: Db) {
     const photoForm = new FormData()
     const labeledPhotos: Array<DBPhotoInfo> = []
     for (const bphoto of basicPhotos) {
-      photoForm.append("images", await fileFromPath(`./photos/${bphoto.filename}`))
+      photoForm.append("images", await fileFromPath(bphoto.determinePath))
     }
     try {
       const modelRes = await got.post(`${modelServer}/process`, {

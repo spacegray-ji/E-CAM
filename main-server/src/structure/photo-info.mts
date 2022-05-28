@@ -8,6 +8,10 @@ export interface BasicPhotoInfo {
   createdAt: Date
 }
 
+export interface DeterminePhotoInfo extends BasicPhotoInfo {
+  determinePath: string
+}
+
 export interface DBPhotoInfo extends BasicPhotoInfo, PhotoModelSingle {
 
 }
