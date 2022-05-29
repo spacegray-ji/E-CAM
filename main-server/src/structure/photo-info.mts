@@ -9,7 +9,7 @@ export interface BasicPhotoInfo {
 }
 
 export interface DeterminePhotoInfo extends BasicPhotoInfo {
-  determinePath: string
+  determinePath?: string
 }
 
 export interface DBPhotoInfo extends BasicPhotoInfo, PhotoModelSingle {

@@ -254,14 +254,14 @@ async function registerPhoto(exp: Express, db: Db) {
 
         // Crop center
         const squareSize = Math.floor(Math.max(1, Math.max(metadata.width, metadata.height) / 1280) * 224)
-        const cropExport = await image.extract({
+        const cropExport = await sharp(photoData).extract({
           left: Math.floor((metadata.width - squareSize) / 2),
           top: Math.floor((metadata.height - squareSize) / 2),
           width: squareSize,
           height: squareSize,
         }).resize(224, 224).toFile(Path.resolve(".", "tmp", filename))
         // Just JPEG Image
-        const imageJPEG = await image.toFile(Path.resolve(".", "photos", filename))
+        const imageJPEG = await sharp(photoData).toFile(Path.resolve(".", "photos", filename))
 
         // push info
         const pInfo: DeterminePhotoInfo = {
@@ -283,7 +283,10 @@ async function registerPhoto(exp: Express, db: Db) {
     const photoForm = new FormData()
     const labeledPhotos: Array<DBPhotoInfo> = []
     for (const bphoto of basicPhotos) {
-      photoForm.append("images", await fileFromPath(bphoto.determinePath))
+      const determinedPath = bphoto?.determinePath
+      if (determinedPath != null) {
+        photoForm.append("images", await fileFromPath(determinedPath))
+      }
     }
     try {
       const modelRes = await got.post(`${modelServer}/process`, {
@@ -305,6 +308,17 @@ async function registerPhoto(exp: Express, db: Db) {
           responseError(res, Status.INTERNAL_SERVER_ERROR, `Unexpected error. from getting model server. ${JSON.stringify(modelRes)}`)
           return
         }
+        // remove determined photo
+        const determinedPath = bphoto?.determinePath
+        if (determinedPath != null) {
+          try {
+            await fsp.unlink(determinedPath)
+          } catch (err) {
+            console.error(err)
+          }
+          delete bphoto["determinePath"]
+        }
+        // remove path
         const pInfo: DBPhotoInfo = {
           ...bphoto,
           ...valueInfo,
@@ -467,15 +481,22 @@ async function registerPhoto(exp: Express, db: Db) {
     }
   })
   exp.post("/photo/request", async (req, res) => {
-    const token = getQueryParam<string>(req.query.token, "")
+    const log = (str: string) => {
+      logREST("POST", "/photo/request", str)
+    }
+
+    const token = getQueryParam<string>(req.body.token, "")
     const result = {
     }
+
+    log(`[${chalk.blueBright("Param")}] token: ${chalk.yellow(token)}`)
 
     const user = verifyUserToken(token)
     if (user == null) {
       responseError(res, Status.UNAUTHORIZED, "[TOKEN_NOT_FOUND] No user assigned.", result)
       return
     }
+    log(`user: ${chalk.yellow(JSON.stringify(user))}`)
 
     const cameraSocket = getCameraSocket(user.serial)
     if (cameraSocket == null) {
@@ -484,6 +505,7 @@ async function registerPhoto(exp: Express, db: Db) {
     }
 
     try {
+      log(`emit takePhotoAction to ${cameraSocket.id}`)
       cameraSocket.emit("takePhotoAction")
       responseJSON(res, Status.OK, "Request success.", result)
     } catch (err) {

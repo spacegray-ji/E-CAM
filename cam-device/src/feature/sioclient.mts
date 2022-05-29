@@ -107,25 +107,33 @@ export class SIOClient {
         ignoreDefaultArgs: ["--enable-automation"],
         defaultViewport: null,
       })
+      // allow camera perm
+      browser.defaultBrowserContext().overridePermissions(`http://127.0.0.1:${nextjsPort}`, ["camera"])
 
       const page = await browser.newPage()
-      await page.goto(`http://127.0.0.1:${nextjsPort}/preview?close&overlay`)
-      await page.exposeFunction("closePuppeteer", async () => {
-        debug("Close Puppeteer called")
+      try {
+        await page.goto(`http://127.0.0.1:${nextjsPort}/preview?close&overlay`)
+        await page.exposeFunction("closePuppeteer", async () => {
+          debug("Close Puppeteer called")
+          await page.close()
+          await browser.close()
+
+          this.runningBrowser = false
+
+          // sleep screen if linux
+          if (myOS === OSType.LINUX) {
+            try {
+              exec("xset -display :0 dpms force suspend")
+            } catch (err) {
+              debug("Exec Error: " + err)
+            }
+          }
+        })
+      } catch (err) {
+        console.error(err)
         await page.close()
         await browser.close()
-
-        this.runningBrowser = false
-
-        // sleep screen if linux
-        if (myOS === OSType.LINUX) {
-          try {
-            exec("xset -display :0 dpms force suspend")
-          } catch (err) {
-            debug("Exec Error: " + err)
-          }
-        }
-      })
+      }
     }
   }
 }

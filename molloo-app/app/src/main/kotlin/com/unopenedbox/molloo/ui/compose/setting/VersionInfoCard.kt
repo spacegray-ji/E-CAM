@@ -25,11 +25,10 @@ fun VersionInfoCard(modifier: Modifier = Modifier, onClick:() -> Unit = {}) {
         .fillMaxWidth()
         .padding(all = 20.dp),
     ) {
-      Icon(
-        painter = painterResource(id = R.drawable.ic_github),
-        contentDescription = "Github Icon",
+      Image(
+        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+        contentDescription = "Launcher Icon",
         modifier = Modifier.size(80.dp),
-        tint = MaterialTheme.colorScheme.onSurface,
       )
       Column(
         modifier = Modifier.padding(start = 20.dp),
@@ -39,10 +38,21 @@ fun VersionInfoCard(modifier: Modifier = Modifier, onClick:() -> Unit = {}) {
           style = MaterialTheme.typography.titleLarge,
         )
         Spacer(modifier = Modifier.height(10.dp))
-        Text(
-          text = stringResource(id = R.string.card_info_description),
-          style = MaterialTheme.typography.bodyMedium,
-        )
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+        ) {
+          Text(
+            text = stringResource(id = R.string.card_info_description),
+            style = MaterialTheme.typography.bodyMedium,
+          )
+          Spacer(modifier = Modifier.weight(1f))
+          Icon(
+            painter = painterResource(id = R.drawable.ic_github),
+            contentDescription = "Github Icon",
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.onSurface,
+          )
+        }
       }
     }
   }

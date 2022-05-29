@@ -68,7 +68,6 @@ object Libs {
         const val material_icons_ext = "androidx.compose.material:material-icons-extended:${Versions.AndroidX.compose}"
         const val ui = "androidx.compose.ui:ui:${Versions.AndroidX.compose}"
         const val livedata = "androidx.compose.runtime:runtime-livedata:${Versions.AndroidX.compose}"
-        const val ui_tooling = "androidx.compose.ui:ui-tooling:${Versions.AndroidX.compose}"
         const val ui_tooling_preview = "androidx.compose.ui:ui-tooling-preview:${Versions.AndroidX.compose}"
         const val foundation = "androidx.compose.foundation:foundation:${Versions.AndroidX.compose}"
         const val paging3_compose = "androidx.paging:paging-compose:${Versions.AndroidX.paging3_compose}"

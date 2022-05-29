@@ -10,7 +10,7 @@
         <item name="colorSecondaryVariant">@color/teal_700</item>
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
 
@@ -23,16 +23,6 @@
         <item name="cornerSize">20dp</item>
     </style>
 
-    <style name="Theme.Molloo.OneUI" parent="@style/OneUITheme">
-
-    </style>
-
-    <style name="linearContainer">
-        <item name="android:orientation">vertical</item>
-        <item name="android:padding">20dp</item>
-        <item name="android:background">@color/sesl_background_floating</item>
-    </style>
-
     <style name="Theme.AppSplash" parent="Theme.SplashScreen">
 
         <item name="windowSplashScreenBackground">@color/color_splash_back</item>
@@ -41,7 +31,7 @@
         <item name="postSplashScreenTheme">@style/Theme.Molloo.Compat</item>
 
         <!-- Status bar and Nav bar configs -->
-        <item name="android:statusBarColor" tools:targetApi="l">@color/color_splash_back</item>
+        <item name="android:statusBarColor">@color/color_splash_back</item>
         <item name="android:navigationBarColor">@color/color_splash_back</item>
         <item name="android:windowLightStatusBar">@bool/isDarkMode</item>
     </style>
