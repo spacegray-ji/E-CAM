@@ -6,9 +6,17 @@ plugins {
     kotlin("plugin.serialization") version Versions.kotlin
 }
 
-val ingrements = 7
+val ingrements = 9
 
 android {
+    signingConfigs {
+        create("release") {
+            storeFile = file("E:\\workspace\\debug.keystore")
+            storePassword = "123456"
+            keyAlias = "debug"
+            keyPassword = "123456"
+        }
+    }
     compileSdk = Apps.compileSdk
 
     defaultConfig {
@@ -94,8 +102,6 @@ dependencies {
     }
     // Google Material
     implementation(Libs.google_material)
-    // OneUI Design
-    implementation(Libs.oneui_design)
     // AppIntro
     implementation(Libs.appIntro)
     // Lottie (Animation)
@@ -108,13 +114,17 @@ dependencies {
         implementation(it.getter.call() as String)
     }
     // Material-Dialog
+    /*
     Libs.MaterialDialog::class.memberProperties.forEach {
         implementation(it.getter.call() as String)
     }
+    */
     // Compose Dialog
+    /*
     Libs.ComposeDialog::class.memberProperties.forEach {
         implementation(it.getter.call() as String)
     }
+     */
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")

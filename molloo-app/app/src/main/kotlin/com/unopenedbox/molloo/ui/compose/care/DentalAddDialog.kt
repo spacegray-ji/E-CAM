@@ -23,7 +23,6 @@ import androidx.fragment.app.FragmentManager
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.unopenedbox.molloo.R
 import com.unopenedbox.molloo.struct.DentalHistory
-import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import kotlinx.datetime.*
 import kotlinx.datetime.TimeZone
 import java.text.SimpleDateFormat

@@ -3,7 +3,7 @@
     <style name="Theme.Molloo.Compat" parent="Theme.Material3.DynamicColors.DayNight">
         <item name="android:windowLightNavigationBar">true</item>
     </style>
-    <style name="Theme.Molloo.Intro" parent="Theme.Material3.DynamicColors.DayNight">
+    <style name="Theme.Molloo.Intro" parent="Theme.Material3.DayNight.NoActionBar">
 
     </style>
 

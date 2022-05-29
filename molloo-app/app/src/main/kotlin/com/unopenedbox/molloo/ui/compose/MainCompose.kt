@@ -76,7 +76,6 @@ import com.unopenedbox.molloo.ui.compose.setting.VersionInfoCard
 import com.unopenedbox.molloo.ui.model.MainUIViewModel
 import com.unopenedbox.molloo.ui.model.MollooClientViewModel
 import com.unopenedbox.molloo.ui.theme.MollooTheme
-import com.vanpra.composematerialdialogs.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
@@ -130,11 +129,12 @@ class MainCompose : AppCompatActivity() {
       val isRefreshing: Boolean by uiModel.isRefreshing.collectAsState()
       val selectedItemTab: Int by uiModel.selectedTab.collectAsState()
 
-      val timePickerState = rememberMaterialDialogState()
       val isDentalDialogShowing: Boolean by uiModel.isDentalDialogShowing.collectAsState()
       val editDentalItemPosition: Int by uiModel.dentalDialogEditPosition.collectAsState()
       val isUserEditDialogShowing: Boolean by uiModel.isUserEditDialogShowing.collectAsState()
       val tipText: String by uiModel.tipString.collectAsState()
+
+      val isCamAvailable = camSerialValue.isNotEmpty() && camTokenValue.isNotEmpty()
 
       // Nav items
       val navItems = listOf(
@@ -150,7 +150,6 @@ class MainCompose : AppCompatActivity() {
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp),
             ) {
-              val isCamAvailable = camSerialValue.isNotEmpty() && camTokenValue.isNotEmpty()
               Spacer(Modifier.height(20.dp))
               // 카메라 추가 버튼 & 정보 버튼
               if (!isCamAvailable) {
@@ -175,8 +174,7 @@ class MainCompose : AppCompatActivity() {
                   ).show()
                 })
                 Spacer(Modifier.height(20.dp))
-              }
-              if (isCamAvailable) {
+              } else {
                 // 캡쳐 버튼
                 CaptureButtonSingle(onClick = {
                   lifecycleScope.launch {
@@ -187,21 +185,21 @@ class MainCompose : AppCompatActivity() {
                   }
                 })
                 Spacer(Modifier.height(20.dp))
+                // 검진 기록 추가
+                AddCareCard(
+                  isOutline = false,
+                ) {
+                  uiModel.setSelectedTab(2)
+                  uiModel.setDentalDialogEditPosition(-1)
+                  uiModel.setIsDentalDialogShowing(true)
+                }
+                Spacer(Modifier.height(20.dp))
+                // 팁
+                TipCard(
+                  tipText = tipText,
+                )
+                Spacer(Modifier.height(20.dp))
               }
-              // 검진 기록 추가
-              AddCareCard(
-                isOutline = false,
-              ) {
-                uiModel.setSelectedTab(2)
-                uiModel.setDentalDialogEditPosition(-1)
-                uiModel.setIsDentalDialogShowing(true)
-              }
-              Spacer(Modifier.height(20.dp))
-              // 팁
-              TipCard(
-                tipText = tipText,
-              )
-              Spacer(Modifier.height(20.dp))
             }
           }
         },
@@ -209,16 +207,32 @@ class MainCompose : AppCompatActivity() {
          * History Tab
          */
         NavItem(Icons.Outlined.Image, stringResource(id = R.string.tab_photo), tabOnClick = { photoItems.refresh() }) { contentPadding ->
-          SwipeRefresh(state = rememberSwipeRefreshState(isRefreshing), onRefresh = { photoItems.refresh() }) {
+          SwipeRefresh(
+            state = rememberSwipeRefreshState(isRefreshing),
+            onRefresh = { photoItems.refresh() },
+            modifier = Modifier.padding(contentPadding),
+          ) {
             LazyColumn(
               contentPadding = PaddingValues(
                 horizontal = 20.dp,
-                vertical = 8.dp,
               ),
               modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding),
+                .fillMaxSize(),
             ) {
+              item {
+                Spacer(Modifier.height(20.dp))
+                if (photoItems.itemCount <= 0) {
+                  CaptureButtonSingle(onClick = {
+                    lifecycleScope.launch {
+                      val result = clientModel.request.requestECamPhoto(
+                        token = camTokenValue,
+                      )
+                      Toast.makeText(this@MainCompose, if (result) R.string.toast_ecam_request_success else R.string.toast_ecam_request_fail, Toast.LENGTH_LONG).show()
+                    }
+                  })
+                  Spacer(Modifier.height(20.dp))
+                }
+              }
               items(
                 count = photoItems.itemCount,
                 key = { index -> photoItems[index]?.id ?: ""},
@@ -260,11 +274,13 @@ class MainCompose : AppCompatActivity() {
               Spacer(Modifier.height(20.dp))
             }
             item {
-              AddCareCard {
-                uiModel.setDentalDialogEditPosition(-1)
-                uiModel.setIsDentalDialogShowing(true)
+              if (dentalHistoryItems.isEmpty()) {
+                AddCareCard {
+                  uiModel.setDentalDialogEditPosition(-1)
+                  uiModel.setIsDentalDialogShowing(true)
+                }
+                Spacer(Modifier.height(20.dp))
               }
-              Spacer(Modifier.height(20.dp))
             }
             items(
               count = dentalHistoryItems.size,
@@ -505,6 +521,9 @@ class MainCompose : AppCompatActivity() {
         launch {
           clientModel.username.collect { username ->
             propStore.setUsername(username)
+            if (username.isNotEmpty() && clientModel.camSerial.value.isNotEmpty()) {
+              // aaaaaaa
+            }
           }
         }
         launch {
@@ -589,40 +608,49 @@ class MainCompose : AppCompatActivity() {
           }
         }
         launch {
-          if (resources.configuration.locales[0].language == "ko") {
-            val tips = withContext(Dispatchers.IO) {
-              val tipsLocal = mutableListOf<String>()
-              kotlin.runCatching {
-                resources.assets.open("tips.txt").bufferedReader(Charset.forName("UTF-8")).use {
-                  it.readLines().forEach { line ->
-                    if (line.trim().isNotEmpty()) {
-                      tipsLocal.add(line.trim())
+          clientModel.camToken.collect { token ->
+            if (resources.configuration.locales[0].language == "ko" && token.isNotEmpty()) {
+              val tips = withContext(Dispatchers.IO) {
+                val tipsLocal = mutableListOf<String>()
+                kotlin.runCatching {
+                  resources.assets.open("tips.txt").bufferedReader(Charset.forName("UTF-8")).use {
+                    it.readLines().forEach { line ->
+                      line.trim().let { trimLine ->
+                        if (trimLine.isNotEmpty()) {
+                          tipsLocal.add(
+                            trimLine
+                              .replace(Regex("[?][ ]+"), "?\n")
+                              .replace(Regex("[.][ ]+"), ".\n")
+                          )
+                        }
+                        Unit
+                      }
                     }
                   }
                 }
+                tipsLocal
               }
-              tipsLocal
-            }
-            val lastTipTime = propStore.lastTipTime.first()
-            val lastTipIndex = propStore.lastTipIndex.first()
-            val now = Clock.System.now()
-            if (tips.getOrNull(lastTipIndex) == null || now.minus(if (BuildConfig.DEBUG) { 60.seconds } else { 1.days }).minus(lastTipTime).isPositive()) {
-              // coolTime done
-              if (tips.size <= 0) {
-                // no tips
-                propStore.setLastTipIndex(-1)
-                uiModel.setTipString("")
+              val lastTipTime = propStore.lastTipTime.first()
+              val lastTipIndex = propStore.lastTipIndex.first()
+              val now = Clock.System.now()
+              if (tips.getOrNull(lastTipIndex) == null || now.minus(if (BuildConfig.DEBUG) { 60.seconds } else { 1.days }).minus(lastTipTime).isPositive()) {
+                // coolTime done
+                if (tips.size <= 0) {
+                  // no tips
+                  propStore.setLastTipIndex(-1)
+                  uiModel.setTipString("")
+                } else {
+                  // tip
+                  val randomIndex = Random.nextInt(tips.size)
+                  val tip = tips[randomIndex]
+                  uiModel.setTipString(tip)
+                  propStore.setLastTipIndex(randomIndex)
+                }
+                propStore.setLastTipTime(now)
               } else {
-                // tip
-                val randomIndex = Random.nextInt(tips.size)
-                val tip = tips[randomIndex]
-                uiModel.setTipString(tip)
-                propStore.setLastTipIndex(randomIndex)
-              }
-              propStore.setLastTipTime(now)
-            } else {
-              if (uiModel.tipString.value.isEmpty()) {
-                uiModel.setTipString(tips.getOrElse(lastTipIndex) { "" })
+                if (uiModel.tipString.value.isEmpty()) {
+                  uiModel.setTipString(tips.getOrElse(lastTipIndex) { "" })
+                }
               }
             }
           }
@@ -648,9 +676,10 @@ class MainCompose : AppCompatActivity() {
             val builder = NotificationCompat.Builder(context, channelId).apply {
               setSmallIcon(IconCompat.createWithResource(context, R.drawable.ic_idea))
               setContentTitle(context.getString(R.string.tip_noti_deliver_title))
-              setContentText(tip)
+              setContentText(tip.split("\n").firstOrNull() ?: context.getString(R.string.ok))
               priority = NotificationCompat.PRIORITY_LOW
               setDefaults(NotificationCompat.DEFAULT_ALL)
+              setStyle(NotificationCompat.BigTextStyle().bigText(tip))
             }
             NotificationManagerCompat.from(context).notify(12000, builder.build())
           }

@@ -12,9 +12,9 @@
     <string name="intro_page1_title">안녕하세요!</string>
     <string name="intro_page1_desc">새로운 사용자는 언제나 환영이에요.\n몰루 앱은 간단한 치아 진단 앱이에요.</string>
     <string name="intro_page2_title">무엇을 하는 건가요?</string>
-    <string name="intro_page2_desc">몰루는 충치를 감지해 치아 관리를 도와줍니다.\n아마도요.....</string>
+    <string name="intro_page2_desc">몰루는 충치를 감지해 치아 관리를 도와줍니다.\n그 외에도 다양한 기능이 있어요.</string>
     <string name="intro_page3_title">사용해 봅시다!</string>
-    <string name="intro_page3_desc">가즈아~</string>
+    <string name="intro_page3_desc">완료 버튼을 눌러 사용해 보아요!</string>
     <!-- ActionFragment -->
     <string name="capture_suggest_title">촬영하기</string>
     <string name="capture_device_phone">휴대폰</string>

@@ -48,7 +48,7 @@ class MollooClientViewModel : ViewModel() {
     private val _camToken = MutableStateFlow("")
     val camToken = _camToken.asStateFlow()
     // Username
-    private val _username = MutableStateFlow("Default")
+    private val _username = MutableStateFlow("")
     val username = _username.asStateFlow()
     fun setUsername(username: String) {
         _username.value = username
@@ -105,7 +105,7 @@ class MollooClientViewModel : ViewModel() {
             launch {
                 camSerial.collect { serial ->
                     if (serial.isNotEmpty()) {
-                        updateCamToken(serial, username.value)
+                        // updateCamToken(serial, username.value)
                     }
                 }
             }
@@ -121,6 +121,7 @@ class MollooClientViewModel : ViewModel() {
     }
 
     private suspend fun updateCamToken(serial:String, username: String) {
+        Log.d("MollooClientViewModel", "updateCamToken: $serial / $username (now: ${camToken.value})")
         if (camToken.value.isNotEmpty()) {
             val tokenResp = request.verifyToken(camToken.value)
             if (tokenResp != null) {

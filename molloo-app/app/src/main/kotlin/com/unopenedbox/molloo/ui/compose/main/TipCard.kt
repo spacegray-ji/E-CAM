@@ -18,8 +18,10 @@ import com.unopenedbox.molloo.BuildConfig
 import com.unopenedbox.molloo.R
 
 @Composable
-fun TipCard(tipText:String, modifier: Modifier = Modifier) {
-  ElevatedCard {
+fun TipCard(tipText:String, modifier: Modifier = Modifier, onClick:() -> Unit = {}) {
+  ElevatedCard(
+    onClick = onClick,
+  ) {
     Row(
       verticalAlignment = Alignment.CenterVertically,
       modifier = modifier
@@ -29,7 +31,7 @@ fun TipCard(tipText:String, modifier: Modifier = Modifier) {
       Icon(
         imageVector = Icons.Outlined.TipsAndUpdates,
         contentDescription = "Tip",
-        modifier = Modifier.size(48.dp),
+        modifier = Modifier.size(48.dp).padding(all = 8.dp),
         tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f)
       )
       Spacer(Modifier.width(16.dp))

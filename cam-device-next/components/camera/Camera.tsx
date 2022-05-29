@@ -124,8 +124,8 @@ export const Camera = React.forwardRef<unknown, CameraProps>(
             audio: false,
             video: {
               facingMode: currentFacingMode,
-              width: { ideal: 1920 },
-              height: { ideal: 1920 },
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
             },
           };
 
