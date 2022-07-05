@@ -9,14 +9,6 @@ plugins {
 val ingrements = 9
 
 android {
-    signingConfigs {
-        create("release") {
-            storeFile = file("E:\\workspace\\debug.keystore")
-            storePassword = "123456"
-            keyAlias = "debug"
-            keyPassword = "123456"
-        }
-    }
     compileSdk = Apps.compileSdk
 
     defaultConfig {
