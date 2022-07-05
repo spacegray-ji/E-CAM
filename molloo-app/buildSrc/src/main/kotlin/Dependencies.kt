@@ -12,8 +12,8 @@ object Versions {
         const val lifecycle = "2.5.0-beta01"
         const val activity = "1.5.0-beta01"
         const val fragment = "1.4.1"
-        const val compose_material3 = "1.0.0-alpha11"
-        const val compose = "1.2.0-beta02"
+        const val compose_material3 = "1.0.0-alpha13"
+        const val compose = "1.2.0-beta03"
         const val navigation = "2.5.0-beta01"
         const val paging3 = "3.1.1"
         const val paging3_compose = "1.0.0-alpha14"
@@ -25,7 +25,7 @@ object Versions {
 
     object Kotlin {
         const val coroutines = "1.3.9"
-        const val serialization_json = "1.3.2"
+        const val serialization_json = "1.3.3"
         const val datetime = "0.3.3"
     }
 

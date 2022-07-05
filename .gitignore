@@ -1,3 +1,3 @@
 .ignore
-dl
 _legacy_app
+**/.DS_Store

@@ -16,3 +16,6 @@ local.properties
 
 # buildsrc
 buildSrc/build
+
+# release
+app/release
